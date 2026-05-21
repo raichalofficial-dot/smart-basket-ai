@@ -1,0 +1,369 @@
+{% extends 'seller/base.html' %}
+
+{% block title %}Ecommerce Dashboard{% endblock %}
+
+{% block extra_head %}
+<!-- Chart.js for data visualization -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .glass-card {
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(241, 245, 249, 1);
+        padding: 24px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .glass-card:hover {
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+    }
+    .stat-pill {
+        background: white;
+        border-radius: 99px;
+        padding: 12px 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+        border: 1px solid #f1f5f9;
+        transition: all 0.3s ease;
+    }
+    .stat-pill:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
+    }
+    .badge-soft {
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 10px;
+        padding: 4px 10px;
+        border-radius: 8px;
+    }
+    .progress-circle {
+        width: 120px;
+        height: 120px;
+        position: relative;
+    }
+    .progress-circle svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+    }
+    .progress-circle .bg {
+        fill: none;
+        stroke: #f1f5f9;
+        stroke-width: 8;
+    }
+    .progress-circle .progress {
+        fill: none;
+        stroke: #2563eb;
+        stroke-width: 8;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-12 pb-20">
+    <!-- DASHBOARD HEADER -->
+    <div class="space-y-1">
+        <h1 class="text-[28px] font-bold text-[#1e293b] tracking-tight">Ecommerce Dashboard</h1>
+        <p class="text-[#64748b] text-[15px] font-normal">Here's what's going on at your business right now</p>
+    </div>
+
+    <!-- STATS PILLS ROW -->
+    <div class="flex flex-wrap gap-8 items-center">
+        <!-- Products -->
+        <div class="flex items-center gap-4 py-2">
+            <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
+                <i class="fas fa-box text-sm"></i>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-[18px] font-bold text-[#1e293b]">{{ total_products }}</span>
+                <span class="text-[11px] font-bold text-[#94a3b8] uppercase tracking-widest">Products</span>
+            </div>
+        </div>
+        <!-- Orders -->
+        <div class="flex items-center gap-4 py-2">
+            <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
+                <i class="fas fa-shopping-cart text-sm"></i>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-[18px] font-bold text-[#1e293b]">{{ metrics.today_orders }}</span>
+                <span class="text-[11px] font-bold text-[#94a3b8] uppercase tracking-widest">Today's Orders</span>
+            </div>
+        </div>
+        <!-- Success -->
+        <div class="flex items-center gap-4 py-2">
+            <div class="w-10 h-10 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center">
+                <i class="fas fa-check-circle text-sm"></i>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-[18px] font-bold text-[#1e293b]">{{ metrics.success_rate }}%</span>
+                <span class="text-[11px] font-bold text-[#94a3b8] uppercase tracking-widest">Success Rate</span>
+            </div>
+        </div>
+        <!-- Rating -->
+        <div class="flex items-center gap-4 py-2">
+            <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center">
+                <i class="fas fa-star text-sm"></i>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-[18px] font-bold text-[#1e293b]">{{ average_rating }}</span>
+                <span class="text-[11px] font-bold text-[#94a3b8] uppercase tracking-widest">Avg Rating</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN GRID: CHART & REVENUE -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- TOTAL SELLS COLUMN -->
+        <div class="lg:col-span-2 glass-card h-[450px] flex flex-col">
+            <div class="mb-6 flex justify-between items-start">
+                <div>
+                    <h3 class="text-xl font-black text-slate-800 tracking-tight">Total Sells</h3>
+                    <p class="text-xs text-slate-400 font-medium">Payment received across all channels (Last 7 Days)</p>
+                </div>
+                <div class="text-[10px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></span> Pulse Live
+                </div>
+            </div>
+            <div class="flex-1 w-full relative">
+                <canvas id="sellsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- TOTAL REVENUE COLUMN -->
+        <div class="glass-card flex flex-col justify-between">
+            <div>
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest">Total Revenue</h3>
+                        <p class="text-[10px] text-slate-300 font-medium uppercase tracking-widest mt-0.5">This Month</p>
+                    </div>
+                </div>
+                <div class="text-3xl font-black text-emerald-500 tracking-tighter">₹{{ metrics.total_revenue|floatformat:2 }}</div>
+            </div>
+
+            <!-- Profit Indicator -->
+            <div class="flex flex-col items-center justify-center space-y-6 flex-1 py-10">
+                <div class="progress-circle">
+                    <svg viewBox="0 0 100 100">
+                        <circle class="bg" cx="50" cy="50" r="45"></circle>
+                        <circle class="progress" cx="50" cy="50" r="45" style="stroke-dasharray: 283; stroke-dashoffset: calc(283 - (283 * {{ profit_margin }}) / 100);"></circle>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center flex-col">
+                        <span class="text-2xl font-black text-slate-800 tracking-tight">{{ profit_margin }}%</span>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Profit Margin Indicator</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI SMART RESTOCK SECTION -->
+    <div id="restock-section" class="glass-card">
+        <div class="flex justify-between items-center mb-10">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center shadow-inner">
+                    <i class="fas fa-magic text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-black text-slate-800 tracking-tight">Smart Restock Assistant</h3>
+                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-0.5">AI-Powered Continuity Optimization</p>
+                </div>
+            </div>
+        </div>
+
+        {% if restock_insights %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for item in restock_insights %}
+            <div class="p-6 rounded-3xl border border-slate-100 hover:border-indigo-100 hover:shadow-lg hover:shadow-indigo-50/50 transition-all group bg-slate-50/30">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h4 class="font-black text-slate-800 text-sm tracking-tight group-hover:text-indigo-600 transition-colors">{{ item.product }}</h4>
+                        <span class="text-[9px] font-black text-slate-300 uppercase tracking-widest">REF: ASSET-{{ item.product_id }}</span>
+                    </div>
+                    <span class="badge-soft 
+                        {% if item.priority == 'High' %}bg-rose-50 text-rose-600{% elif item.priority == 'Medium' %}bg-amber-50 text-amber-600{% else %}bg-emerald-50 text-emerald-600{% endif %}">
+                        {{ item.priority }}
+                    </span>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="bg-white p-3 rounded-xl border border-slate-50">
+                        <span class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Stock</span>
+                        <span class="text-sm font-black text-slate-800">{{ item.stock }}</span>
+                    </div>
+                    <div class="bg-white p-3 rounded-xl border border-slate-50">
+                        <span class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Velocity</span>
+                        <span class="text-sm font-black text-slate-800">{{ item.avg_daily_sales|floatformat:1 }}/d</span>
+                    </div>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-2xl mb-6">
+                    <p class="text-[11px] font-bold text-indigo-700 leading-relaxed italic">
+                         {{ item.restock }}
+                    </p>
+                </div>
+                <a href="{% url 'manage_products' %}" class="w-full flex items-center justify-center gap-2 py-3 bg-slate-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-colors">
+                    Update Inventory <i class="fas fa-arrow-right text-[10px]"></i>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="py-20 text-center flex flex-col items-center">
+            <div class="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-6">
+                <i class="fas fa-check-double text-3xl"></i>
+            </div>
+            <h4 class="text-lg font-black text-slate-800 mb-2 tracking-tight italic">All Systems Healthy</h4>
+            <p class="text-sm text-slate-400 font-medium">Neural scans show no immediate restocking needs across your inventory matrix.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ACTIVE DELIVERIES -->
+    <div class="glass-card">
+        <div class="flex justify-between items-center mb-8 px-2">
+            <div>
+                <h3 class="text-xl font-black text-slate-800 tracking-tight">Active Deliveries</h3>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Real-time Fulfillment Pipeline</p>
+            </div>
+            <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span> Live Tracking
+            </div>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="bg-slate-50/50">
+                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Fulfillment #</th>
+                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Recipient</th>
+                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status Matrix</th>
+                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Protocol Sync</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for delivery in deliveries %}
+                    <tr class="hover:bg-slate-50/30 transition-colors group">
+                        <td class="px-6 py-5">
+                            <span class="font-black text-slate-800 tracking-tight text-sm">#ORDER-{{ delivery.order.id }}</span>
+                        </td>
+                        <td class="px-6 py-5">
+                            <span class="text-xs font-black text-slate-600 italic">@{{ delivery.order.user.username }}</span>
+                        </td>
+                        <td class="px-6 py-5">
+                            <span class="badge-soft bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl">
+                                {{ delivery.status }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-5 text-center">
+                            <div class="flex gap-2 justify-center">
+                                <a href="{% url 'update_delivery_status' delivery.id 'PACKED' %}" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-400 hover:bg-slate-800 hover:text-white flex items-center justify-center transition-all" title="Mark as Packed">
+                                    <i class="fas fa-box text-xs"></i>
+                                </a>
+                                <a href="{% url 'update_delivery_status' delivery.id 'DISPATCHED' %}" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-400 hover:bg-orange-500 hover:text-white flex items-center justify-center transition-all" title="Mark as Dispatched">
+                                    <i class="fas fa-truck text-xs"></i>
+                                </a>
+                                <a href="{% url 'update_delivery_status' delivery.id 'NEARBY' %}" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-400 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-all" title="Mark as Nearby">
+                                    <i class="fas fa-map-marker-alt text-xs"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="py-20 text-center">
+                            <div class="flex flex-col items-center opacity-40">
+                                <i class="fas fa-inbox text-4xl mb-4"></i>
+                                <span class="text-[10px] font-black uppercase tracking-widest">Queue Clear - No Active Shipments</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div><script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!document.getElementById('sellsChart')) return;
+        
+        const ctx = document.getElementById('sellsChart').getContext('2d');
+        
+        // Gradient for chart
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(37, 99, 235, 0.2)');
+        gradient.addColorStop(1, 'rgba(37, 99, 235, 0)');
+
+        const labels = {{ metrics.chart_data.labels|safe|default:"[]" }};
+        const values = {{ metrics.chart_data.values|safe|default:"[]" }};
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Sales Revenue',
+                    data: values,
+                    borderColor: '#2563eb',
+                    backgroundColor: gradient,
+                    borderWidth: 4,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#2563eb',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        titleFont: { family: 'Outfit', weight: '900', size: 12 },
+                        bodyFont: { family: 'Outfit', weight: '500', size: 11 },
+                        padding: 12,
+                        cornerRadius: 12,
+                        callbacks: {
+                            label: function(context) {
+                                return ' ₹' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f1f5f9' },
+                        ticks: {
+                            font: { family: 'Outfit', weight: '700', size: 10 },
+                            color: '#94a3b8',
+                            callback: function(value) { return '₹' + value; }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { family: 'Outfit', weight: '700', size: 10 },
+                            color: '#94a3b8'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+
+<footer style="margin-top: 50px; padding: 30px; border-top: 1px solid #f1f5f9; text-align: center; color: #94a3b8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;">
+    © 2025 FoodShare | Reduce Food Waste
+</footer>
+{% endblock %}

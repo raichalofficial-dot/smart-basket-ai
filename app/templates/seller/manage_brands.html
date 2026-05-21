@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Brands</title>
+    <style>
+        body { font-family: Arial; background:#f4f6f9; padding:0px; }
+        h2 { color:#1A2A5E; }
+
+        .card {
+            background:#fff;
+            padding:20px;
+            border-radius:10px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom:25px;
+            max-width:600px;
+        }
+
+        input, select {
+            padding:8px;
+            border-radius:5px;
+            border:1px solid #ccc;
+            margin-right:10px;
+        }
+
+        button {
+            padding:8px 14px;
+            border:none;
+            background:#1A2A5E;
+            color:white;
+            border-radius:5px;
+        }
+
+        table {
+            width:100%;
+            border-collapse:collapse;
+            margin-top:15px;
+        }
+
+        th, td {
+            padding:10px;
+            border-bottom:1px solid #ddd;
+            text-align:left;
+        }
+
+        th { background:#eef1f7; }
+
+        .delete-btn {
+            background:#c62828;
+            color:white;
+            padding:5px 10px;
+            border-radius:5px;
+            text-decoration:none;
+            font-size:13px;
+        }
+    </style>
+</head>
+<body>
+{% include 'seller/navbar.html' %}
+
+<h2>Manage Brands</h2>
+
+<div class="card">
+    <form method="POST">
+        {% csrf_token %}
+
+        <input type="text" name="brand_name" placeholder="Enter brand name" required>
+
+        <select name="category" required>
+            <option value="">Select Category</option>
+            {% for cat in categories %}
+                <option value="{{ cat.id }}">{{ cat.CategoryName }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Add Brand</button>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Your Brands</h3>
+
+    <table>
+        <tr>
+            <th>#</th>
+            <th>Brand Name</th>
+            <th>Category</th>
+            <th>Action</th>
+        </tr>
+
+        {% for brand in brands %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ brand.brandName }}</td>
+            <td>{{ brand.category.CategoryName }}</td>
+            <td>
+                <a href="{% url 'delete_brand' brand.id %}" class="delete-btn"
+                   onclick="return confirm('Delete this brand?')">Delete</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">No brands added yet.</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+</body>
+</html>

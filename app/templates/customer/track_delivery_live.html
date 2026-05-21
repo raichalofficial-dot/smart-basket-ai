@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Track Order #{{ order.id }} - SmartBasket</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f0f2f5; }
+
+    .track-container {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: #555; text-decoration: none; font-size: 13px; margin-bottom: 14px;
+    }
+    .back-link:hover { color: #111; }
+
+    /* Header Banner */
+    .track-header {
+      background: linear-gradient(135deg, #2874f0, #1d4ed8);
+      border-radius: 14px 14px 0 0;
+      padding: 24px 28px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .track-header h2 { font-size: 22px; }
+    .track-header .eta-badge {
+      background: rgba(255,255,255,0.2);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .track-header .sub { opacity: 0.85; font-size: 13px; margin-top: 4px; }
+
+    .track-body {
+      background: white;
+      border-radius: 0 0 14px 14px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    .track-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+    }
+
+    @media (max-width: 768px) {
+      .track-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Map */
+    #map {
+      width: 100%;
+      height: 420px;
+    }
+
+    /* Right Panel */
+    .right-panel {
+      padding: 24px;
+      border-left: 1px solid #f0f0f0;
+    }
+
+    /* Status Steps */
+    .status-steps {
+      margin-bottom: 24px;
+    }
+    .step {
+      display: flex; align-items: flex-start; gap: 14px;
+      margin-bottom: 20px; position: relative;
+    }
+    .step-dot {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+      background: #e2e8f0; color: #94a3b8;
+      transition: all 0.3s;
+    }
+    .step.done .step-dot {
+      background: #16a34a; color: white;
+    }
+    .step.current .step-dot {
+      background: #2874f0; color: white;
+      box-shadow: 0 0 0 4px rgba(40,116,240,0.2);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 4px rgba(40,116,240,0.2); }
+      50% { box-shadow: 0 0 0 8px rgba(40,116,240,0.1); }
+    }
+    .step-line {
+      position: absolute;
+      left: 15px; top: 36px;
+      width: 2px; height: 20px;
+      background: #e2e8f0;
+    }
+    .step.done .step-line { background: #16a34a; }
+    .step-info .label { font-weight: 700; font-size: 14px; color: #1e293b; }
+    .step-info .time { font-size: 11px; color: #94a3b8; }
+
+    /* Agent Info */
+    .agent-card {
+      background: #f8fafc; border-radius: 10px; padding: 16px;
+      display: flex; align-items: center; gap: 14px;
+      border: 1px solid #e2e8f0;
+    }
+    .agent-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: #2874f0; color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .agent-name { font-weight: 700; font-size: 15px; color: #1e293b; }
+    .agent-phone { font-size: 12px; color: #64748b; }
+    .agent-vehicle { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+    /* ETA Box */
+    .eta-box {
+      margin-top: 16px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+    }
+    .eta-box .eta-label { font-size: 12px; color: #16a34a; font-weight: 600; }
+    .eta-box .eta-value { font-size: 28px; font-weight: 700; color: #15803d; }
+    .eta-box .eta-sub { font-size: 11px; color: #64748b; margin-top: 4px; }
+
+    /* AI Info */
+    .ai-info {
+      margin-top: 16px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .ai-info h4 { font-size: 13px; color: #1d4ed8; margin-bottom: 8px; }
+    .ai-row { display: flex; justify-content: space-between; font-size: 12px; color: #475569; margin-bottom: 4px; }
+    .ai-row span:last-child { font-weight: 600; color: #1e293b; }
+
+    /* Notification Banner */
+    .notif-banner {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-top: 16px;
+      font-size: 12px;
+      color: #9a3412;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+  {% include 'customer/navbar.html' %}
+
+  <div class="track-container">
+    <a href="{% url 'my_orders' %}" class="back-link">← Back to My Orders</a>
+
+    <div class="track-header">
+      <div>
+        <h2>{% if delivery.status == "DELIVERED" %}✅ Order Delivered{% else %}🚚 Track Order #{{ order.id }}{% endif %}</h2>
+        <div class="sub">{{ order.address }}, {{ order.city }}</div>
+      </div>
+      {% if delivery.status != "DELIVERED" %}
+      <div class="eta-badge" id="etaBadge">
+        ETA: {{ delivery.predicted_eta|default:"--" }} mins
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="track-body">
+      <div class="track-grid">
+
+        <!-- LEFT: Map or Delivery Success -->
+        <div style="{% if delivery.status == 'DELIVERED' %}padding: 40px; text-align: center; border-bottom: 5px solid #16a34a;{% endif %}">
+          {% if delivery.status == "DELIVERED" %}
+            <div style="font-size: 60px; margin-bottom: 20px;">📦✨</div>
+            <h3 style="font-size: 28px; color: #16a34a; font-weight: 800; margin-bottom: 10px;">Delivered Successfully!</h3>
+            <p style="color: #64748b; font-size: 16px; margin-bottom: 30px;">We hope you enjoy your purchase. Your order was delivered at {{ delivery.agent.current_time|default:"just now" }}.</p>
+            
+            <div style="background: #f8fafc; border-radius: 12px; padding: 24px; text-align: left; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0;">
+              <h4 style="font-size: 15px; margin-bottom: 15px; color: #1e293b;">Review Your Items</h4>
+              {% for item in order.items.all %}
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0; {% if forloop.last %}border-bottom:0;{% endif %}">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  {% if item.product.images.first %}
+                  <img src="{{ item.product.images.first.image.url }}" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover;">
+                  {% endif %}
+                  <span style="font-size: 14px; font-weight: 600; color: #334155;">{{ item.product.name }}</span>
+                </div>
+                <a href="{% url 'product_detail' item.product.id %}" style="background: #FFD814; border: 1px solid #FCD200; border-radius: 6px; padding: 6px 12px; font-size: 12px; text-decoration: none; color: #0f1111; font-weight: 600;">
+                  Write a Review
+                </a>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div id="map"></div>
+          {% endif %}
+        </div>
+
+        <!-- RIGHT: Status + Agent -->
+        <div class="right-panel">
+
+          <!-- Status Timeline -->
+          <div class="status-steps">
+            {% for step in status_steps %}
+            <div class="step {% if step.done %}done{% endif %} {% if step.current %}current{% endif %}">
+              <div class="step-dot">{{ step.icon }}</div>
+              {% if not forloop.last %}<div class="step-line"></div>{% endif %}
+              <div class="step-info">
+                <div class="label">{{ step.label }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- Agent Card -->
+          {% if delivery.agent %}
+          <div class="agent-card">
+            <div class="agent-avatar"><i class="fas fa-user"></i></div>
+            <div>
+              <div class="agent-name" id="agentName">{{ delivery.agent.name }}</div>
+              <div class="agent-phone"><i class="fas fa-phone"></i> {{ delivery.agent.phone }}</div>
+              {% if delivery.agent.vehicle_number %}
+              <div class="agent-vehicle">🏍️ {{ delivery.agent.vehicle_number }}</div>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+
+          {% if delivery.status != "DELIVERED" %}
+          <!-- ETA Box -->
+          <div class="eta-box">
+            <div class="eta-label">🤖 AI Predicted ETA</div>
+            <div class="eta-value" id="etaValue">{{ delivery.predicted_eta|default:"--" }} min</div>
+            <div class="eta-sub">Distance: {{ eta_result.distance_km }} km • Traffic: {{ eta_result.traffic_level }}</div>
+          </div>
+
+          <!-- AI Breakdown -->
+          <div class="ai-info">
+            <h4>🧠 AI ETA Breakdown</h4>
+            <div class="ai-row"><span>Distance</span><span>{{ eta_result.distance_km }} km</span></div>
+            <div class="ai-row"><span>Traffic Level</span><span>{{ eta_result.traffic_level }}</span></div>
+            <div class="ai-row"><span>Traffic Delay</span><span>+{{ eta_result.traffic_delay_mins }} min</span></div>
+            <div class="ai-row"><span>Order Load Delay</span><span>+{{ eta_result.order_load_delay_mins }} min</span></div>
+            <div class="ai-row" style="border-top:1px solid #bfdbfe; padding-top:6px; margin-top:4px;">
+              <span><strong>Total ETA</strong></span>
+              <span><strong>{{ eta_result.predicted_eta_mins }} min</strong></span>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Live Notification -->
+          <div class="notif-banner" id="notifBanner">
+            <i class="fas fa-bell"></i>
+            <span id="notifText">
+              {% if delivery.status == "PACKED" %}
+                Your order has been packed and is ready for dispatch.
+              {% elif delivery.status == "DISPATCHED" %}
+                Your order is on the way! The agent is heading towards you.
+              {% elif delivery.status == "NEARBY" %}
+                The delivery agent is nearby! Please be ready.
+              {% elif delivery.status == "DELIVERED" %}
+                Your order has been delivered. Enjoy! 🎉
+              {% else %}
+                Order is being processed...
+              {% endif %}
+            </span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const mapEl = document.getElementById('map');
+    if (mapEl) {
+        // Coordinates
+        const storeLat = {{ store_lat|default:0 }};
+        const storeLng = {{ store_lng|default:0 }};
+        const custLat = {{ cust_lat|default:0 }};
+        const custLng = {{ cust_lng|default:0 }};
+        let agentLat = {{ agent_lat|default:0 }};
+        let agentLng = {{ agent_lng|default:0 }};
+
+        // Center map on midpoint
+        const centerLat = (storeLat + custLat) / 2;
+        const centerLng = (storeLng + custLng) / 2;
+
+        // Initialize map
+        const map = L.map('map').setView([centerLat, centerLng], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Custom icons
+        const storeIcon = L.divIcon({
+          html: '<div style="font-size:24px;">🏪</div>',
+          className: '', iconSize: [30, 30], iconAnchor: [15, 30]
+        });
+        const customerIcon = L.divIcon({
+          html: '<div style="font-size:24px;">🏠</div>',
+          className: '', iconSize: [30, 30], iconAnchor: [15, 30]
+        });
+        const agentIcon = L.divIcon({
+          html: '<div style="font-size:28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">🏍️</div>',
+          className: '', iconSize: [34, 34], iconAnchor: [17, 34]
+        });
+
+        // Markers
+        L.marker([storeLat, storeLng], { icon: storeIcon })
+          .addTo(map).bindPopup('<b>🏪 Store</b>');
+
+        L.marker([custLat, custLng], { icon: customerIcon })
+          .addTo(map).bindPopup('<b>🏠 Your Location</b>');
+
+        const agentMarker = L.marker([agentLat, agentLng], { icon: agentIcon })
+          .addTo(map).bindPopup('<b>🏍️ Delivery Agent</b>');
+
+        // Route line (store → agent → customer)
+        const routeLine = L.polyline([
+          [storeLat, storeLng],
+          [agentLat, agentLng],
+          [custLat, custLng]
+        ], { color: '#2874f0', weight: 3, dashArray: '8 4' }).addTo(map);
+
+        // Fit bounds
+        map.fitBounds([
+          [storeLat, storeLng],
+          [custLat, custLng],
+          [agentLat, agentLng]
+        ], { padding: [40, 40] });
+
+        // POLL agent location every 5 seconds
+        setInterval(async () => {
+          try {
+            const resp = await fetch('/api/agent-location/{{ order.id }}/');
+            const data = await resp.json();
+            if (data.status === 'success') {
+              agentLat = data.agent_lat;
+              agentLng = data.agent_lng;
+
+              // Update marker
+              agentMarker.setLatLng([agentLat, agentLng]);
+
+              // Update route
+              routeLine.setLatLngs([
+                [storeLat, storeLng],
+                [agentLat, agentLng],
+                [custLat, custLng]
+              ]);
+
+              // Update ETA
+              if (data.eta) {
+                const valEl = document.getElementById('etaValue');
+                const badgeEl = document.getElementById('etaBadge');
+                if (valEl) valEl.innerText = data.eta + ' min';
+                if (badgeEl) badgeEl.innerText = 'ETA: ' + data.eta + ' mins';
+              }
+
+              // Update agent name
+              if (data.agent_name) {
+                const nameEl = document.getElementById('agentName');
+                if (nameEl) nameEl.innerText = data.agent_name;
+              }
+
+              // Status notification
+              const statusMsgs = {
+                'PACKED': 'Your order has been packed and is ready for dispatch.',
+                'DISPATCHED': 'Your order is on the way! The agent is heading towards you.',
+                'NEARBY': 'The delivery agent is nearby! Please be ready.',
+                'DELIVERED': 'Your order has been delivered. Enjoy! 🎉'
+              };
+              const notifText = document.getElementById('notifText');
+              if (notifText && statusMsgs[data.delivery_status]) {
+                notifText.innerText = statusMsgs[data.delivery_status];
+              }
+              
+              // If status becomes DELIVERED during polling, reload to show success view
+              if (data.delivery_status === 'DELIVERED') {
+                  location.reload();
+              }
+            }
+          } catch(e) {
+            console.error('Polling error:', e);
+          }
+        }, 5000);
+    }
+  </script>
+</body>
+</html>

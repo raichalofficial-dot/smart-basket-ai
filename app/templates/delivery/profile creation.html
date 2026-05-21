@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Create Delivery Profile</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f6f8;
+}
+
+.container{
+width:420px;
+margin:50px auto;
+background:white;
+padding:30px;
+border-radius:10px;
+box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
+
+input,textarea,select{
+width:100%;
+padding:10px;
+margin-top:8px;
+margin-bottom:15px;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+button{
+background:#2874f0;
+color:white;
+border:none;
+padding:12px;
+width:100%;
+border-radius:8px;
+font-weight:600;
+cursor:pointer;
+}
+
+
+    .back-btn {
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.back-btn:hover {
+    transform: translateX(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+</style>
+
+</head>
+
+<body>
+<button onclick="history.back()" class="back-btn">
+    ⬅ Back
+</button>
+<div class="container">
+
+<h2>Create Delivery Partner Profile</h2>
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Full Name</label>
+    <input type="text" name="full_name" required>
+
+    <label>Phone</label>
+    <input type="tel" name="phone" required maxlength="10" pattern="\d{10}" inputmode="numeric" title="Enter exactly 10 digits" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
+
+    <label>Vehicle Type</label>
+    <select name="vehicle_type">
+        <option value="Bike">Bike</option>
+        <option value="Scooter">Scooter</option>
+        <option value="Car">Car</option>
+    </select>
+
+    <label>Vehicle Number</label>
+    <input type="text" name="vehicle_number" required>
+
+    <label>Working City</label>
+    <input type="text" name="working_city" required>
+
+    <label>Address</label>
+    <textarea name="address"></textarea>
+
+    <!-- Hidden fields for GPS -->
+    <input type="hidden" name="latitude" id="latitude">
+    <input type="hidden" name="longitude" id="longitude">
+
+    <button type="button" onclick="getLocation()">Get Current Location</button>
+
+    <p id="location-status"></p>
+
+    <button type="submit">Create Profile</button>
+
+</form>
+
+</div>
+<script>
+
+function getLocation() {
+
+    if (navigator.geolocation) {
+
+        navigator.geolocation.getCurrentPosition(showPosition, showError);
+
+    } else {
+        document.getElementById("location-status").innerHTML = "Geolocation not supported.";
+    }
+}
+
+function showPosition(position) {
+
+    document.getElementById("latitude").value = position.coords.latitude;
+    document.getElementById("longitude").value = position.coords.longitude;
+
+    document.getElementById("location-status").innerHTML =
+        "Location captured successfully ✔";
+
+}
+
+function showError(error) {
+
+    let message = "";
+
+    switch(error.code) {
+        case error.PERMISSION_DENIED:
+            message = "User denied location permission";
+            break;
+        case error.POSITION_UNAVAILABLE:
+            message = "Location unavailable";
+            break;
+        case error.TIMEOUT:
+            message = "Location request timed out";
+            break;
+        case error.UNKNOWN_ERROR:
+            message = "Unknown error occurred";
+            break;
+    }
+
+    document.getElementById("location-status").innerHTML = message;
+}
+
+</script>
+</body>
+</html>

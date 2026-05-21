@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Order Success</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f4f7f9;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'customer/navbar.html' %}
+    <div class="container" style="max-width: 600px; margin: 60px auto; text-align: center;">
+        <div style="background: white; padding: 50px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div
+                style="width: 80px; height: 80px; background: #dcfce7; color: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px auto;">
+                <i class="fas fa-check-circle" style="font-size: 40px;"></i>
+            </div>
+
+           <div id="paypal-button-container"></div>
+
+<!-- PayPal SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id=AVXG6G9HnX0PCj2Hgy56POogs8Ovt2Os0fcqx_jkaVOZlGW9mH6gdr-tXFFZScMUcyMnEfueV7sx0Asv&currency=USD"></script>
+
+<script>
+paypal.Buttons({
+
+    createOrder: function(data, actions) {
+    return actions.order.create({
+        purchase_units: [{
+            amount: {
+                value: "{{ total }}"
+            },
+            shipping: {
+                address: {
+                    address_line_1: "{{ address }}",
+                     admin_area_2: "{{ city }}",
+                    admin_area_1: "Kerala",
+                    postal_code: "{{ postal_code }}",
+                    country_code: "IN"
+                }
+            }
+        }]
+    });
+},
+    onApprove: function(data, actions) {
+        return actions.order.capture().then(function(details) {
+
+            alert("Payment successful by " + details.payer.name.given_name);
+
+           window.location.href = "{% url 'payment_success'    %}";;
+
+        });
+    }
+
+}).render('#paypal-button-container');
+</script>
+</body>
+
+</html>

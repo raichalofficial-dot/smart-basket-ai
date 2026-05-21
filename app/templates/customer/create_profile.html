@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Create Customer Profile</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f7f7f7;
+}
+
+.container{
+width:420px;
+margin:60px auto;
+background:white;
+padding:30px;
+border-radius:10px;
+box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
+
+label{
+font-weight:600;
+display:block;
+margin-top:12px;
+}
+
+input,textarea{
+width:100%;
+padding:10px;
+margin-top:6px;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+button{
+margin-top:20px;
+width:100%;
+padding:12px;
+background:#fc8019;
+border:none;
+color:white;
+font-size:16px;
+font-weight:bold;
+border-radius:8px;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+  {% include 'customer/navbar.html' %}
+<div class="container">
+
+<h2>Create Customer Profile</h2>
+
+<form method="post">
+{% csrf_token %}
+
+<label>Full Name</label>
+<input type="text" name="full_name" required>
+
+<label>Phone</label>
+<input type="tel" name="phone" required maxlength="10" pattern="\d{10}" inputmode="numeric" title="Enter exactly 10 digits" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
+
+<label>City</label>
+<input type="text" name="city" id="city" required>
+
+<label>Address</label>
+<textarea name="address" id="address" rows="3" readonly required></textarea>
+
+<input type="hidden" name="latitude" id="latitude">
+<input type="hidden" name="longitude" id="longitude">
+
+<button type="button" onclick="getLocation()">Use Current Location</button>
+
+<button type="submit">Create Profile</button>
+
+</form>
+
+</div>
+
+<script>
+
+function getLocation(){
+
+if(!navigator.geolocation){
+alert("Geolocation not supported");
+return;
+}
+
+navigator.geolocation.getCurrentPosition(function(position){
+
+fetch("/reverse-geocode/",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"X-CSRFToken":"{{ csrf_token }}"
+},
+
+body:JSON.stringify({
+latitude:position.coords.latitude,
+longitude:position.coords.longitude
+})
+
+})
+
+.then(res=>res.json())
+.then(data=>{
+
+document.getElementById("address").value=data.address
+document.getElementById("city").value=data.city
+document.getElementById("latitude").value=data.latitude
+document.getElementById("longitude").value=data.longitude
+
+})
+
+.catch(()=>alert("Location fetch failed"))
+
+})
+
+}
+
+</script>
+
+</body>
+</html>

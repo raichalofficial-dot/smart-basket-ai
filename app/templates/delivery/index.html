@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Delivery Partner Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+font-family:'Poppins',sans-serif;
+background:#f1f5f9;
+}
+
+/* HEADER */
+
+.header{
+background:linear-gradient(135deg,#2874f0,#1d4ed8);
+color:white;
+padding:18px 40px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+box-shadow:0 3px 10px rgba(0,0,0,0.1);
+}
+
+.header h2{
+font-weight:600;
+}
+
+.header-right{
+display:flex;
+align-items:center;
+gap:20px;
+}
+
+.profile-btn{
+background:white;
+color:#2874f0;
+padding:8px 15px;
+border-radius:6px;
+font-size:14px;
+text-decoration:none;
+font-weight:500;
+transition:0.2s;
+}
+
+.profile-btn:hover{
+background:#e0e7ff;
+}
+
+.welcome{
+font-size:14px;
+opacity:0.9;
+}
+
+/* CONTAINER */
+
+.container{
+max-width:1100px;
+margin:40px auto;
+padding:0 20px;
+}
+
+.container h3{
+margin-bottom:25px;
+font-weight:600;
+color:#1e293b;
+}
+
+/* ORDER CARD */
+
+.order-card{
+background:white;
+padding:22px;
+margin-bottom:18px;
+border-radius:12px;
+box-shadow:0 6px 18px rgba(0,0,0,0.08);
+display:flex;
+justify-content:space-between;
+align-items:center;
+transition:0.25s;
+border-left:5px solid #2874f0;
+}
+
+.order-card:hover{
+transform:translateY(-3px);
+box-shadow:0 10px 25px rgba(0,0,0,0.12);
+}
+
+.order-details{
+font-size:14px;
+color:#334155;
+}
+
+.order-details span{
+display:block;
+margin-bottom:6px;
+}
+
+.order-details b{
+color:#0f172a;
+}
+
+/* STATUS */
+
+.status{
+font-size:12px;
+color:#64748b;
+margin-top:5px;
+}
+
+/* ACCEPT BUTTON */
+
+.accept-btn{
+background:#16a34a;
+color:white;
+border:none;
+padding:10px 20px;
+border-radius:7px;
+font-weight:600;
+cursor:pointer;
+transition:0.25s;
+font-size:14px;
+}
+
+.accept-btn:hover{
+background:#15803d;
+transform:scale(1.05);
+}
+
+/* EMPTY STATE */
+
+.empty{
+background:white;
+padding:30px;
+border-radius:10px;
+text-align:center;
+color:#64748b;
+box-shadow:0 5px 15px rgba(0,0,0,0.08);
+}
+
+/* MOBILE */
+
+@media(max-width:768px){
+
+.order-card{
+flex-direction:column;
+align-items:flex-start;
+gap:15px;
+}
+
+.accept-btn{
+width:100%;
+}
+
+.header{
+flex-direction:column;
+gap:10px;
+}
+
+}
+
+    /* PAGE TITLE */
+.page-title{
+    text-align:center;
+    margin-top:40px;
+    margin-bottom:20px;
+    color:#1e293b;
+    font-weight:600;
+}
+
+/* DELIVERY CARD (same feel as order-card) */
+.delivery-date-card{
+    background:white;
+    margin:20px auto;
+    padding:20px;
+    border-radius:12px;
+    width:90%;
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+    border-left:5px solid #2874f0;
+    transition:0.25s;
+}
+
+.delivery-date-card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 25px rgba(0,0,0,0.12);
+}
+
+/* DATE HEADING */
+.date-heading{
+    margin-bottom:15px;
+    color:#0f172a;
+    font-weight:600;
+}
+
+/* TABLE */
+.table-wrapper{
+    overflow-x:auto;
+}
+
+.delivery-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+}
+
+/* HEADER */
+.delivery-table th{
+    background:#2874f0;
+    color:white;
+    padding:12px;
+    text-align:left;
+    font-weight:500;
+}
+
+/* ROWS */
+.delivery-table td{
+    padding:12px;
+    border-bottom:1px solid #e2e8f0;
+    color:#334155;
+}
+
+/* ROW HOVER */
+.delivery-table tbody tr:hover{
+    background:#f8fafc;
+}
+
+/* STATUS BADGES (same palette style) */
+.status{
+    padding:5px 12px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:600;
+    color:white;
+    display:inline-block;
+}
+
+.status.packed{
+    background:#64748b;
+}
+
+.status.dispatched{
+    background:#f59e0b;
+}
+
+.status.nearby{
+    background:#3b82f6;
+}
+
+.status.delivered{
+    background:#16a34a;
+}
+
+/* TRACKING ROW */
+.tracking-row td{
+    background:#f8fafc;
+}
+
+/* TRACKING BOX */
+.tracking-box{
+    padding:10px 5px;
+}
+
+/* TIMELINE */
+.timeline{
+    list-style:none;
+    padding-left:0;
+    margin-top:10px;
+}
+
+.timeline li{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    margin-bottom:10px;
+}
+
+/* DOT */
+.dot{
+    width:10px;
+    height:10px;
+    background:#2874f0;
+    border-radius:50%;
+    margin-top:5px;
+}
+
+/* TRACK TEXT */
+.track-status{
+    margin:0;
+    font-weight:600;
+    color:#0f172a;
+}
+
+/* SMALL TEXT */
+.timeline small{
+    color:#64748b;
+}
+
+/* MOBILE IMPROVEMENT */
+@media(max-width:768px){
+
+    .delivery-date-card{
+        width:95%;
+        padding:15px;
+    }
+
+    .delivery-table th,
+    .delivery-table td{
+        padding:10px;
+        font-size:12px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+
+<h2>🚚 Delivery Dashboard</h2>
+
+<div class="header-right">
+
+<a href="/delivery/profile/" class="profile-btn">
+👤 Profile
+</a>
+
+<div class="welcome">
+Welcome {{ user }}
+</div>
+
+    <a href="/delivery/assigned-orders/" class="profile-btn">
+Accepted Oreders
+</a>
+
+    <a href="{% url 'logout' %}" class="menu-link">Logout</a>
+
+</div>
+
+</div>
+
+<div class="container">
+
+<h3>📦 Available Orders Near You</h3>
+
+{% for order in orders %}
+
+<div class="order-card">
+
+<div class="order-details">
+
+<span><b>Order ID:</b> #{{ order.id }}</span>
+<span><b>Customer:</b> {{ order.user.username }}</span>
+<span><b>Amount:</b> ₹{{ order.total_amount }}</span>
+<span><b>Address:</b> {{ order.address }}</span>
+
+<span class="status">
+⏱ ETA: {{ order.delivery.predicted_eta }} mins
+</span>
+
+</div>
+
+<div>
+
+<a href="{% url 'accept_order' order.id %}">
+<button class="accept-btn">Accept Order</button>
+</a>
+
+</div>
+
+</div>
+
+{% empty %}
+
+<div class="empty">
+🚫 No orders available nearby.
+</div>
+
+{% endfor %}
+
+</div>
+
+
+
+
+<h2 class="page-title">🚚 My Deliveries</h2>
+
+<div class="delivery-date-card">
+
+<div class="table-wrapper">
+<table class="delivery-table">
+
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Order</th>
+            <th>Status</th>
+            <th>Traffic</th>
+            <th>Distance</th>
+            <th>ETA</th>
+            <th>Slot</th>
+            <th>Tracking</th>
+        </tr>
+    </thead>
+
+    <tbody>
+<tbody>
+
+{% for date, deliveries in deliveries_by_date.items %}
+
+    {% for d in deliveries %}
+
+        {% with logs=d.logs %}   <!-- ✅ use logs from view -->
+
+        {% if logs %}
+
+            {% for log in logs %}
+            <tr>
+
+                {% if forloop.first %}
+                <td rowspan="{{ logs|length }}">{{ date }}</td>
+
+                <td rowspan="{{ logs|length }}">
+                    <b>#{{ d.order.id }}</b><br>
+                    ₹{{ d.order.total_amount }}
+                </td>
+
+                <td rowspan="{{ logs|length }}">
+                    <span class="status {{ d.status|lower }}">
+                        {{ d.status }}
+                    </span>
+                </td>
+
+                <td rowspan="{{ logs|length }}">
+                    {{ d.traffic_level }}
+                </td>
+
+                <td rowspan="{{ logs|length }}">
+                    {{ d.distance_km }} km
+                </td>
+
+                <td rowspan="{{ logs|length }}">
+                    {{ d.predicted_eta }} min
+                </td>
+
+                <td rowspan="{{ logs|length }}">
+                    {% if d.slot %}
+                        {{ d.slot.start_time }} - {{ d.slot.end_time }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                {% endif %}
+
+                <!-- Tracking -->
+                <td>
+                    <b>{{ log.status }}</b><br>
+                    <small>{{ log.location_name }} • {{ log.timestamp }}</small>
+                </td>
+
+            </tr>
+            {% endfor %}
+
+        {% else %}
+
+            <!-- ✅ No tracking -->
+            <tr>
+                <td>{{ date }}</td>
+                <td>
+                    <b>#{{ d.order.id }}</b><br>
+                    ₹{{ d.order.total_amount }}
+                </td>
+                <td>
+                    <span class="status {{ d.status|lower }}">
+                        {{ d.status }}
+                    </span>
+                </td>
+                <td>{{ d.traffic_level }}</td>
+                <td>{{ d.distance_km }} km</td>
+                <td>{{ d.predicted_eta }} min</td>
+                <td>
+                    {% if d.slot %}
+                        {{ d.slot.start_time }} - {{ d.slot.end_time }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>No tracking updates</td>
+            </tr>
+
+        {% endif %}
+
+        {% endwith %}
+
+    {% endfor %}
+
+{% endfor %}
+
+</tbody>
+
+</table>
+</div>
+
+</div>
+
+</body>
+</html>

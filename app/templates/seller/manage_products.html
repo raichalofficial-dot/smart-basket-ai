@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Products</title>
+    <style>
+        body { font-family: Arial; background:#f4f6f9; padding:40px; }
+        h2 { color:#1A2A5E; }
+
+        .card {
+            background:#fff;
+            padding:20px;
+            border-radius:10px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom:30px;
+        }
+
+        input, select, textarea {
+            width:100%;
+            padding:8px;
+            margin-bottom:10px;
+            border-radius:5px;
+            border:1px solid #ccc;
+        }
+
+        button {
+            background:#1A2A5E;
+            color:white;
+            padding:10px 15px;
+            border:none;
+            border-radius:5px;
+        }
+
+        table { width:100%; border-collapse:collapse; margin-top:20px; }
+        th, td { padding:10px; border-bottom:1px solid #ddd; text-align:left; }
+        th { background:#eef1f7; }
+
+        img { width:50px; height:50px; object-fit:cover; border-radius:5px; }
+
+        .delete-btn {
+            background:#c62828;
+            color:white;
+            padding:5px 10px;
+            border-radius:5px;
+            text-decoration:none;
+        }
+        .badge { padding:4px 8px; border-radius:12px; font-size:12px; color:white; }
+.quantity { background:#2e7d32; }
+.piece { background:#6a1b9a; }
+    </style>
+</head>
+<body>
+{% include 'seller/navbar.html' %}
+<h2>Manage Products</h2>
+
+<div class="card">
+    <h3>Add Product</h3>
+    <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <label>Product Images</label>
+    <input type="file" name="image" multiple>
+        <label>Product Type</label>
+<select name="product_type" id="ptype">
+    <option value="piece">Piece Based</option>
+    <option value="quantity">Quantity Based</option>
+</select>
+
+
+
+<div id="quantityFields" style="display:none;">
+    <h4>Quantity Pricing</h4>
+    <div id="qcontainer">
+        <div>
+            <input type="text" name="quantity" placeholder="1kg">
+            <input type="number" name="qprice" placeholder="Price">
+            <input type="number" name="qstock" placeholder="Stock">
+        </div>
+    </div>
+    <button type="button" onclick="addMore()">+ Add More</button> <br>
+</div>
+
+    <button type="submit">Add Product</button>
+</form>
+</div>
+
+<div class="card">
+    <h3>Your Products</h3>
+
+    <table>
+    <tr>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Brand</th>
+        <th>Type</th>
+        <th>Price</th>
+        <th>Stock</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for product in products %}
+    <tr>
+        <td>{{ product.name }}</td>
+        <td>{{ product.category }}</td>
+        <td>{{ product.brand }}</td>
+
+        <td>
+            {% if product.product_type == "quantity" %}
+                <span class="badge quantity">Quantity Based</span>
+            {% else %}
+                <span class="badge piece">Piece Based</span>
+            {% endif %}
+        </td>
+
+        <td>₹ {{ product.price }}</td>
+        <td>
+            {% if product.product_type == "piece" %}
+                {{ product.stock }}
+            {% else %}
+                Multiple Options
+            {% endif %}
+        </td>
+
+        <td>
+            <a href="{% url 'delete_product' product.id %}" class="btn edit">Delete</a>
+
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="7">No products added yet.</td>
+    </tr>
+    {% endfor %}
+</table>
+</div>
+
+
+
+<script>
+document.getElementById("ptype").addEventListener("change", function() {
+    if (this.value === "quantity") {
+        document.getElementById("quantityFields").style.display = "block";
+        document.getElementById("pieceFields").style.display = "none";
+    } else {
+        document.getElementById("quantityFields").style.display = "none";
+        document.getElementById("pieceFields").style.display = "block";
+    }
+});
+
+function addMore() {
+    let div = document.createElement("div");
+    div.innerHTML = `
+        <input type="text" name="quantity" placeholder="500g">
+        <input type="number" name="qprice" placeholder="Price">
+        <input type="number" name="qstock" placeholder="Stock">
+    `;
+    document.getElementById("qcontainer").appendChild(div);
+}
+</script>
+
+</body>
+</html>

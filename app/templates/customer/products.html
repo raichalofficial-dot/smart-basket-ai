@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All Products - SmartBasket</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            color: #1e293b;
+        }
+        
+        /* Navigation */
+        .top-nav {
+            background: white;
+            padding: 15px 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .top-nav a {
+            color: #475569;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .top-nav .header-title {
+            float: right;
+            font-size: 18px;
+            font-weight: 700;
+            color: #2563eb;
+        }
+
+        /* Layout */
+        .page-container {
+            max-width: 1300px;
+            margin: 30px auto;
+            padding: 0 20px;
+            display: flex;
+            gap: 30px;
+        }
+
+        /* Sidebar Filters */
+        .sidebar {
+            width: 250px;
+            flex-shrink: 0;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            height: fit-content;
+        }
+        
+        .filter-section {
+            margin-bottom: 25px;
+        }
+        .filter-section h4 {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            color: #0f172a;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+        
+        .filter-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #475569;
+        }
+        
+        .form-check:hover { color: #2563eb; }
+        
+        /* Sort Dropdown */
+        .sort-dropdown {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            font-family: inherit;
+            color: #1e293b;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .btn-clear {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background: #f1f5f9;
+            color: #475569;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-clear:hover { background: #e2e8f0; color: #0f172a; }
+
+        /* Main Content */
+        .main-content {
+            flex-grow: 1;
+        }
+        
+        .products-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .products-header h2 { margin: 0; color: #0f172a; }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        
+        .product-card {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .no-image {
+            width: 100%;
+            height: 180px;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #cbd5e1;
+        }
+        
+        .product-info {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .product-brand {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .product-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 8px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .product-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2563eb;
+            margin-top: auto;
+        }
+        
+        .original-price {
+            text-decoration: line-through;
+            color: #94a3b8;
+            font-size: 13px;
+            margin-left: 5px;
+        }
+        
+        .btn-add {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+            text-decoration: none;
+        }
+        .btn-add:hover { background: #059669; }
+
+        /* Alerts & States */
+        .loading-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px;
+            color: #64748b;
+        }
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px;
+            background: white;
+            border-radius: 12px;
+            color: #64748b;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        .page-btn {
+            padding: 8px 16px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            border-radius: 6px;
+            color: #475569;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .page-btn:hover { background: #f1f5f9; color: #0f172a; }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-info { align-self: center; font-size: 14px; color: #64748b; }
+
+    </style>
+</head>
+<body>
+
+    <div class="top-nav">
+        <div style="max-width: 1300px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+            <a href="{% url 'customer_index' %}"><i class="fas fa-arrow-left"></i> Back to Store</a>
+            <div class="header-title"><i class="fas fa-search"></i> Browse Products</div>
+        </div>
+    </div>
+
+    <div class="page-container">
+        <!-- Sidebar Filters -->
+        <div class="sidebar">
+            <div class="filter-section">
+                <h4>Sort By</h4>
+                <select id="sort_filter" class="sort-dropdown" onchange="applyFilters()">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="price_low_high">Price (Low to High)</option>
+                    <option value="price_high_low">Price (High to Low)</option>
+                </select>
+            </div>
+
+            <div class="filter-section">
+                <h4>Category</h4>
+                <div class="filter-options">
+                    <!-- Unique mapping to allow single checkbox selection for demo -->
+                    {% for cat in categories %}
+                    <label class="form-check">
+                        <input type="radio" name="category_filter" value="{{ cat.CategoryName }}" onchange="applyFilters()"> 
+                        {{ cat.CategoryName }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h4>Brand</h4>
+                <div class="filter-options">
+                    {% for brand in brands %}
+                    <label class="form-check">
+                        <input type="radio" name="brand_filter" value="{{ brand.brandName }}" onchange="applyFilters()"> 
+                        {{ brand.brandName }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button class="btn-clear" onclick="clearFilters()">Clear Filters</button>
+        </div>
+
+        <!-- Main Product Area -->
+        <div class="main-content">
+            <div class="products-header">
+                <h2 id="result-count">Loading Products...</h2>
+            </div>
+
+            <div class="products-grid" id="products-grid">
+                <div class="loading-state">
+                    <i class="fas fa-circle-notch fa-spin fa-2x"></i>
+                    <p>Fetching products...</p>
+                </div>
+            </div>
+
+            <div class="pagination" id="pagination-controls" style="display: none;">
+                <button class="page-btn" id="btn-prev" onclick="changePage(-1)">Previous</button>
+                <span class="page-info" id="page-info">Page 1 of 1</span>
+                <button class="page-btn" id="btn-next" onclick="changePage(1)">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let totalPages = 1;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchProducts();
+        });
+
+        function clearFilters() {
+            document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+            document.getElementById("sort_filter").value = "newest";
+            currentPage = 1;
+            fetchProducts();
+        }
+
+        function applyFilters() {
+            currentPage = 1; // Reset to page 1 on new filter
+            fetchProducts();
+        }
+
+        function changePage(delta) {
+            currentPage += delta;
+            fetchProducts();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function fetchProducts() {
+            // Get selected values
+            const selectedCategory = document.querySelector('input[name="category_filter"]:checked');
+            const selectedBrand = document.querySelector('input[name="brand_filter"]:checked');
+            const sortVal = document.getElementById("sort_filter").value;
+
+            // Build request body
+            const requestData = {
+                category: selectedCategory ? selectedCategory.value : null,
+                brand: selectedBrand ? selectedBrand.value : null,
+                sort: sortVal,
+                page: currentPage
+            };
+
+            // Loading state
+            const grid = document.getElementById("products-grid");
+            const pagination = document.getElementById("pagination-controls");
+            grid.innerHTML = `<div class="loading-state"><i class="fas fa-circle-notch fa-spin fa-2x"></i><p>Applying filters...</p></div>`;
+            pagination.style.display = "none";
+
+            fetch("{% url 'filter_products_api' %}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.error) {
+                    grid.innerHTML = `<div class="empty-state"><p>Error: ${data.error}</p></div>`;
+                    return;
+                }
+                
+                renderProducts(data.products);
+                
+                // Update Pagination
+                totalPages = data.total_pages;
+                document.getElementById("page-info").innerText = `Page ${data.current_page} of ${totalPages || 1}`;
+                document.getElementById("btn-prev").disabled = !data.has_previous;
+                document.getElementById("btn-next").disabled = !data.has_next;
+                
+                if (totalPages > 0) {
+                    pagination.style.display = "flex";
+                }
+            })
+            .catch(err => {
+                console.error("Filter error:", err);
+                grid.innerHTML = `<div class="empty-state"><p>Something went wrong loading the products.</p></div>`;
+            });
+        }
+
+        function renderProducts(products) {
+            const grid = document.getElementById("products-grid");
+            grid.innerHTML = "";
+
+            if (!products || products.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-box-open fa-3x" style="color: #cbd5e1; margin-bottom: 15px;"></i>
+                        <p>No products found matching your filters.</p>
+                        <button class="btn-clear" onclick="clearFilters()" style="width: auto; padding: 10px 20px;">Clear Filters</button>
+                    </div>`;
+                document.getElementById("result-count").innerText = "0 Products Found";
+                return;
+            }
+
+            document.getElementById("result-count").innerText = `Showing List of Products`;
+
+            products.forEach(p => {
+                const imgHtml = p.image_url 
+                    ? `<img src="${p.image_url}" class="product-image" alt="${p.name}">` 
+                    : `<div class="no-image"><i class="fas fa-image fa-2x"></i></div>`;
+                
+                const discountHtml = p.discount > 0 
+                    ? `<span class="original-price">₹${parseFloat(p.price).toFixed(2)}</span>` 
+                    : '';
+
+                // Add to cart URL placeholder
+                // We're redirecting to product detail to handle quantity/weight selection
+                const detailUrl = `/product/${p.id}/`;
+
+                const cardHtml = `
+                    <div class="product-card">
+                        <a href="${detailUrl}">${imgHtml}</a>
+                        <div class="product-info">
+                            <div class="product-brand">${p.brand_name || 'Generic'}</div>
+                            <div class="product-name" title="${p.name}">${p.name}</div>
+                            <div class="product-price">
+                                ₹${parseFloat(p.selling_price).toFixed(2)}
+                                ${discountHtml}
+                            </div>
+                        </div>
+                        <a href="${detailUrl}" class="btn-add"><i class="fas fa-cart-plus"></i> View / Add</a>
+                    </div>
+                `;
+                grid.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+    </script>
+</body>
+</html>

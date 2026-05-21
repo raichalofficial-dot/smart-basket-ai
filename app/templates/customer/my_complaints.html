@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>My Complaints | FashionHub</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            color: #2874f0;
+        }
+
+        .btn {
+            background: #2874f0;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #fff;
+            text-transform: uppercase;
+            float: right;
+        }
+
+        .priority-HIGH {
+            background-color: #c62828;
+        }
+
+        .priority-MEDIUM {
+            background-color: #ffa000;
+        }
+
+        .priority-LOW {
+            background-color: #2e7d32;
+        }
+
+        .status {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .date {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #fff;
+            margin-left: 10px;
+        }
+
+        .status-pending {
+            background-color: #94a3b8;
+        }
+
+        .status-in-progress {
+            background-color: #3b82f6;
+        }
+
+        .status-resolved {
+            background-color: #10b981;
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'customer/navbar.html' %}
+    <div class="container">
+        <div class="header">
+            <h2>My Complaints</h2>
+            <a href="{% url 'submit_complaint' %}" class="btn">+ File New Complaint</a>
+        </div>
+
+        {% if messages %}
+        {% for message in messages %}
+        <p style="color: #2e7d32; font-weight: bold;">{{ message }}</p>
+        {% endfor %}
+        {% endif %}
+
+        {% for complaint in complaints %}
+        <div class="card">
+            <span class="badge priority-{{ complaint.priority }}">{{ complaint.priority }} Priority</span>
+            <div class="date">{{ complaint.created_at|date:"M d, Y H:i" }}</div>
+            <p><strong>{{ complaint.text }}</strong></p>
+            <div class="status">
+                Status: <span class="status-badge status-{{ complaint.status|slugify }}">
+                    {{ complaint.status }}
+                </span>
+                {% if complaint.order %} | Linked to Order #{{ complaint.order.id }}{% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="card" style="text-align: center;">
+            <p>You haven't submitted any complaints yet.</p>
+            <a href="{% url 'submit_complaint' %}">Click here to submit your first complaint.</a>
+        </div>
+        {% endfor %}
+
+        <br>
+        <a href="{% url 'customer_index' %}" style="color: #2874f0;">← Back to Home</a>
+    </div>
+</body>
+
+</html>

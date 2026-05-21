@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Categories</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            padding: 0px;
+        }
+
+        h2 {
+            color: #1A2A5E;
+        }
+
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            max-width: 500px;
+        }
+
+        input[type="text"] {
+            width: 70%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 8px 14px;
+            border: none;
+            background: #1A2A5E;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #eef1f7;
+        }
+
+        .delete-btn {
+            color: white;
+            background: #c62828;
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+{% include 'seller/navbar.html' %}
+<h2>Manage Categories</h2>
+
+<div class="card">
+    <form method="POST">
+        {% csrf_token %}
+        <input type="text" name="category_name" placeholder="Enter category name" required>
+        <button type="submit">Add Category</button>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Your Categories</h3>
+
+    <table>
+        <tr>
+            <th>#</th>
+            <th>Category Name</th>
+            <th>Action</th>
+        </tr>
+
+        {% for cat in categories %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ cat.CategoryName }}</td>
+            <td>
+                <a href="{% url 'delete_category' cat.id %}" class="delete-btn"
+                   onclick="return confirm('Delete this category?')">
+                   Delete
+                </a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">No categories added yet.</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,332 @@
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+
+/* Navbar */
+
+.nav-header{
+  background:#ffffff;
+  border-bottom:1px solid #e5e7eb;
+  padding:12px 30px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:sticky;
+  top:0;
+  z-index:5000;
+  margin-bottom:20px;
+  font-family:'Inter', Arial, sans-serif;
+}
+
+/* Logo */
+
+.logo-text{
+  font-size:24px;
+  font-weight:800;
+  color:#111;
+  cursor:pointer;
+  letter-spacing:-0.5px;
+}
+
+.logo-text span{
+  color:#16a34a;
+}
+
+/* Search */
+
+.search-container{
+  flex:1;
+  max-width:520px;
+  margin:0 40px;
+}
+
+.search-form{
+  display:flex;
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:6px;
+  overflow:hidden;
+  height:40px;
+}
+
+.search-input{
+  border:none;
+  flex:1;
+  padding:0 15px;
+  outline:none;
+  font-size:14px;
+}
+
+.search-btn{
+  background:#16a34a;
+  color:white;
+  border:none;
+  padding:0 18px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.search-btn:hover{
+  background:#15803d;
+}
+
+.search-icon-btn {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 16px;
+  padding: 0 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: 0.2s;
+}
+
+.search-icon-btn:hover {
+  color: #16a34a;
+  transform: scale(1.1);
+}
+
+/* Menu */
+
+.nav-menu{
+  display:flex;
+  align-items:center;
+  gap:18px;
+}
+
+.menu-link{
+  color:#111;
+  text-decoration:none;
+  font-size:14px;
+  font-weight:500;
+}
+
+.menu-link:hover{
+  color:#16a34a;
+}
+
+/* Icons */
+
+.icon-btn{
+  font-size:20px;
+  color:#111;
+  text-decoration:none;
+  position:relative;
+}
+
+.icon-btn:hover{
+  transform:scale(1.1);
+}
+
+/* Notification badge */
+
+.notif-badge,.cart-badge{
+  position:absolute;
+  top:-5px;
+  right:-7px;
+  background:#ef4444;
+  color:white;
+  font-size:9px;
+  font-weight:700;
+  padding:2px 5px;
+  border-radius:10px;
+}
+
+#aiLoadingOverlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255,255,255,0.8);
+  z-index: 10000;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+  font-family: 'Inter', sans-serif;
+}
+</style>
+
+
+<div id="aiLoadingOverlay">
+    <div style="background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; border: 1px solid #e5e7eb;">
+        <div style="position: relative; width: 80px; height: 80px; margin: 0 auto 25px;">
+            <i class="fas fa-robot" style="font-size: 50px; color: #16a34a; position: relative; z-index: 2;"></i>
+            <div style="position: absolute; top:0; left:0; width:100%; height:100%; border: 4px solid #16a34a; border-top-color: transparent; border-radius: 50%; animation: fa-spin 1s linear infinite;"></div>
+        </div>
+        <h3 style="margin: 0; color: #111; font-size: 20px; font-weight: 700;">AI is searching...</h3>
+        <p style="color: #666; font-size: 14px; margin-top: 10px;">Analyzing your request with smart algorithms</p>
+    </div>
+</div>
+
+<nav class="nav-header">
+
+  <div class="logo-text" onclick="window.location.href='/customer_index'">
+    AI<span>Basket</span>
+  </div>
+
+  <div class="search-container">
+    <form class="search-form" id="searchForm" method="GET" action="{% url 'smart_search' %}">
+      <input 
+        type="text" 
+        name="q" 
+        id="searchInput"
+        placeholder="Search for groceries, snacks, brands..." 
+        class="search-input"
+        value="{{ query|default:'' }}"
+      >
+      <button type="button" class="search-icon-btn" onclick="startVoiceSearch()" title="Voice Search">
+        <i class="fas fa-microphone" id="micIcon"></i>
+      </button>
+      <button type="button" class="search-icon-btn" onclick="document.getElementById('imageUpload').click()" title="Image Search">
+        <i class="fas fa-camera"></i>
+      </button>
+      <button type="submit" class="search-btn">Search</button>
+    </form>
+    <!-- Hidden Image Upload Form -->
+    <form id="imageSearchForm" action="{% url 'image_search' %}" method="POST" enctype="multipart/form-data" style="display:none;">
+        {% csrf_token %}
+        <input type="file" name="image" id="imageUpload" onchange="showAISearching(); this.form.submit()" accept="image/*">
+    </form>
+  </div>
+
+  <div class="nav-menu">
+
+    <a href="/customer/create-profile/" class="menu-link">Profile</a>
+    <a href="/customer_index" class="menu-link">Home</a>
+    
+    <!-- AI Hub Dropdown -->
+    <div style="position: relative;" onmouseover="this.querySelector('.ai-dropdown').style.display='block'" onmouseout="this.querySelector('.ai-dropdown').style.display='none'">
+        <a href="#" class="menu-link" style="color: #16a34a; font-weight: 700;">
+            <i class="fas fa-microchip mr-1"></i> AI Hub
+        </a>
+        <div class="ai-dropdown" style="display: none; position: absolute; top: 100%; left: 0; background: white; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 8px 0; width: 220px; z-index: 10000;">
+            <a href="{% url 'budget_planner' %}" class="dropdown-link" style="display: block; padding: 10px 20px; color: #111; text-decoration: none; font-size: 13px;">
+                <i class="fas fa-wallet mr-2 text-blue-500"></i> AI Budget Planner
+            </a>
+            <a href="{% url 'seasonal_packs' %}" class="dropdown-link" style="display: block; padding: 10px 20px; color: #111; text-decoration: none; font-size: 13px;">
+                <i class="fas fa-gift mr-2 text-orange-500"></i> Seasonal Packs
+            </a>
+            <a href="{% url 'family_group_manage' %}" class="dropdown-link" style="display: block; padding: 10px 20px; color: #111; text-decoration: none; font-size: 13px;">
+                <i class="fas fa-users mr-2 text-purple-500"></i> Family Cart Sharing
+            </a>
+            <a href="{% url 'my_smart_pantry' %}" class="dropdown-link" style="display: block; padding: 10px 20px; color: #111; text-decoration: none; font-size: 13px;">
+                <i class="fas fa-house-laptop mr-2 text-emerald-500"></i> Smart Pantry
+            </a>
+        </div>
+    </div>
+
+    <a href="/cart/" class="icon-btn position-relative">
+    <i class="fa-solid fa-cart-shopping"></i>
+
+    {% if cart_count > 0 %}
+    <span class="cart-badge">{{ cart_count }}</span>
+    {% endif %}
+</a>
+
+       <a href="/wishlist/" class="icon-btn">
+     <i class="fa-solid fa-heart"></i>
+    </a>
+
+    <a href="{% url 'customer_notifications' %}" class="icon-btn">
+      <i class="fa-solid fa-bell"></i>
+      {% if unread_notif_count > 0 %}
+      <span class="notif-badge">{{ unread_notif_count|default:0 }}</span>
+      {% endif %}
+    </a>
+
+    <a href="/my_orders/" class="menu-link">Orders</a>
+    <a href="{% url 'submit_complaint' %}" class="menu-link">Help</a>
+    <a href="{% url 'customer_complaints' %}" class="menu-link">My Complaints</a>
+    <a href="{% url 'logout' %}" class="menu-link">Logout</a>
+
+  </div>
+
+</nav>
+
+<script>
+function startVoiceSearch() {
+    const micIcon = document.getElementById('micIcon');
+    const searchInput = document.getElementById('searchInput');
+    const searchForm = document.getElementById('searchForm');
+
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert("Your browser does not support voice search. Please try Chrome.");
+        return;
+    }
+
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new Recognition();
+
+    recognition.lang = 'en-IN';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+        micIcon.style.color = '#ef4444';
+        micIcon.classList.add('fa-beat');
+    };
+
+    recognition.onresult = async (event) => {
+        const transcript = event.results[0][0].transcript;
+        searchInput.value = transcript;
+        
+        showAISearching();
+
+        try {
+            // Check if it's a command (Add to cart / Repeat order)
+            const response = await fetch('/voice_command/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ text: transcript })
+            });
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                document.getElementById('aiLoadingOverlay').style.display = 'none';
+                alert(data.message || "Action completed successfully!");
+                location.reload(); // Reload to show updated cart/order
+            } else if (data.status === 'search') {
+                // If it's just a search query (e.g. "milk"), proceed to search page
+                searchForm.submit();
+            } else {
+                // Error or misunderstood
+                document.getElementById('aiLoadingOverlay').style.display = 'none';
+                alert(data.message || "Could not understand command. Searching instead...");
+                searchForm.submit();
+            }
+        } catch (error) {
+            console.error("Voice processing error:", error);
+            searchForm.submit();
+        }
+    };
+
+    recognition.onerror = (event) => {
+        console.error("Speech error", event.error);
+        stopMic();
+    };
+
+    recognition.onend = () => {
+        stopMic();
+    };
+
+    function stopMic() {
+        micIcon.style.color = '#666';
+        micIcon.classList.remove('fa-beat');
+    }
+
+    recognition.start();
+}
+
+function showAISearching() {
+    document.getElementById('aiLoadingOverlay').style.display = 'flex';
+}
+</script>
+

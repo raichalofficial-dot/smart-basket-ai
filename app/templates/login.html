@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Login</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Poppins", sans-serif;
+            background: linear-gradient(to right, #e3f2fd, #f5f7fa);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-box {
+            background: #ffffff;
+            width: 360px;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.12);
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+
+        .login-box h2 {
+            color: #1a237e;
+            margin-bottom: 22px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        label {
+            float: left;
+            font-size: 14px;
+            font-weight: 500;
+            color: #37474f;
+            margin-bottom: 4px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            margin: 6px 0 16px 0;
+            border-radius: 6px;
+            border: 1px solid #cfd8dc;
+            background: #fafafa;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #1e88e5;
+            box-shadow: 0 0 5px rgba(30, 136, 229, 0.3);
+            background: #ffffff;
+        }
+
+        button {
+            width: 100%;
+            background: #1e88e5;
+            border: none;
+            padding: 11px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #1565c0;
+        }
+
+        .register-link {
+            margin-top: 18px;
+            display: block;
+            color: #1e88e5;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .register-link:hover {
+            text-decoration: underline;
+        }
+
+        .error {
+            color: #c62828;
+            background: #fdecea;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-box">
+        <h2>🍲 Login to AiMart</h2>
+
+        {% if messages %}
+        {% for m in messages %}
+        {% if "Invalid" in m.message or "authorized" in m.message %}
+        <p class="error">{{ m }}</p>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <label>Username</label>
+            <input type="text" name="username" placeholder="Enter username" required pattern="[a-zA-Z0-9]{3,}">
+
+            <label>Password</label>
+            <input type="password" name="password" placeholder="Enter password" required pattern=".{8,}" title="Password must be at least 8 characters long">
+
+            <button type="submit">Login</button>
+            {% if role %}
+            <a href="{% url 'register' role %}" class="register-link">New user? Register</a>
+            {% endif %}
+        </form>
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Seller Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7f7f7;
+        }
+        .container {
+            width: 420px;
+            margin: 60px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: 600;
+            display: block;
+            margin-top: 12px;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: #fc8019;
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+{% include 'seller/navbar.html' %}
+<br>
+<div class="container">
+    <h2>Create Seller Profile</h2>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+
+
+        <label>Display Name</label>
+        <input type="text" name="display_name" placeholder="SuperMarket Name" required>
+
+      <label>City</label>
+<input type="text" name="city" id="city" required>
+
+
+        <label>Opening Time</label>
+        <input type="time" name="opening_time" required>
+
+        <label>Closing Time</label>
+        <input type="time" name="closing_time" required>
+        <label>Add Document</label>
+        <input type="file" name="document" required>
+        <label>Address (Use Current Location Button To Fetch Location )</label>
+        <textarea name="address"
+          id="address"
+          rows="3"
+          required></textarea>
+
+        <input type="hidden" readonly name="latitude" id="latitude">
+
+        <input type="hidden" readonly name="longitude" id="longitude">
+        <button type="submit">Create Profile</button>
+        <button type="button"  onclick="getLocation()">Use Current Location</button>
+    </form>
+</div>
+
+<script>
+function getLocation() {
+    if (!navigator.geolocation) {
+        alert("Geolocation not supported");
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(function(position) {
+        fetch("/reverse-geocode/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.error) {
+                alert("Error: " + data.error);
+                return;
+            }
+            document.getElementById("address").value = data.address || "Unknown Address";
+            document.getElementById("city").value = data.city || "Unknown City";
+            document.getElementById("latitude").value = data.latitude;
+            document.getElementById("longitude").value = data.longitude;
+        })
+        .catch((err) => {
+            console.error(err);
+            alert("Could not connect to geocoding service.");
+        });
+    }, function(error) {
+        alert("Geolocation error: " + error.message);
+    }, {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
+    });
+}
+</script>
+
+</body>
+</html>

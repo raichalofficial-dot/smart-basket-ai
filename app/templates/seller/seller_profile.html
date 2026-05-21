@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Seller Profile | FoodShare</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #f8f8f8;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background: white;
+            padding: 14px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .navbar a.logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: #e23744;
+            text-decoration: none;
+        }
+
+        .navbar a {
+            text-decoration: none;
+            font-weight: 500;
+            color: #333;
+        }
+
+        /* PROFILE CARD */
+        .profile-container {
+            max-width: 600px;
+            margin: 50px auto;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .profile-card h2 {
+            margin-bottom: 20px;
+            color: #222;
+        }
+
+        .profile-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .profile-row:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            color: #777;
+            font-size: 14px;
+        }
+
+        .value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .badge {
+            background: #e23744;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .actions {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .actions a {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .edit-btn {
+            background: #fc8019;
+            color: white;
+        }
+
+        .back-btn {
+            background: #f1f1f1;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+
+    {% include 'seller/navbar.html' %}
+
+    <!-- PROFILE -->
+    <div class="profile-container">
+        <div class="profile-card">
+            <h2>Seller Profile</h2>
+
+            <div class="profile-row">
+                <div class="label">Business Name</div>
+                <div class="value">{{ profile.display_name }}</div>
+            </div>
+
+            <div class="profile-row">
+                <div class="label">Active</div>
+                <div class="value">{{ profile.is_active }}</div>
+            </div>
+
+            <div class="profile-row">
+                <div class="label">Owner</div>
+                <div class="value">{{ profile.seller.username }}</div>
+            </div>
+
+            <div class="profile-row">
+                <div class="label">Email</div>
+                <div class="value">{{ profile.seller.email }}</div>
+            </div>
+
+
+
+            <div class="profile-row">
+                <div class="label">City</div>
+                <div class="value">{{ profile.city }}</div>
+            </div>
+
+            <div class="profile-row">
+                <div class="label">Address</div>
+                <div class="value">{{ profile.address }}</div>
+            </div>
+
+            <div class="actions">
+                <a href="{% url 'seller_index' %}" class="back-btn">Back</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

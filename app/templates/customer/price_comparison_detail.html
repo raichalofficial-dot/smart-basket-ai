@@ -1,0 +1,160 @@
+{% include 'customer/navbar.html' %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div style="max-width: 1000px; margin: 40px auto; padding: 0 20px; font-family: 'Inter', sans-serif;">
+
+    <!-- Product Header -->
+    <div
+        style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 30px;">
+        <div style="display: flex; gap: 30px; align-items: start;">
+            <div
+                style="width: 200px; height: 200px; background: #f8fafc; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-box-open" style="font-size: 60px; color: #cbd5e1;"></i>
+            </div>
+            <div style="flex: 1;">
+                <div
+                    style="text-transform: uppercase; color: #fb6a19; font-weight: 700; font-size: 12px; letter-spacing: 1px;">
+                    {{ product.brand.brandName }}
+                </div>
+                <h1 style="margin: 5px 0; font-size: 28px; color: #1e293b;">
+                    {{ product.name }}
+                </h1>
+                <p style="color: #64748b; margin-top: 10px;">
+                    {{ product.description }}
+                </p>
+                <div style="margin-top: 20px; display: flex; align-items: center; gap: 15px;">
+                    <span style="font-size: 24px; font-weight: 700; color: #1e293b;">
+                        ₹{{ product.price }}
+                    </span>
+                    <span
+                        style="background: #f1f5f9; color: #475569; padding: 5px 12px; border-radius: 20px; font-size: 14px;">
+                        {{ product.category.CategoryName }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vendor Price Comparison -->
+    <div
+        style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 30px;">
+        <div
+            style="padding: 20px 25px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0; font-size: 20px; color: #1e293b;">
+                <i class="fas fa-tags" style="color: #fb6a19; margin-right: 10px;"></i> Smart Price Comparison
+            </h2>
+            <div style="font-size: 13px; color: #64748b;">
+                Prices from {{ comparison|length }} vendors
+            </div>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead style="background: #f8fafc;">
+                <tr>
+                    <th style="padding: 15px 25px; color: #64748b; font-size: 14px; font-weight: 600;">Vendor & Source</th>
+                    <th style="padding: 15px 25px; color: #64748b; font-size: 14px; font-weight: 600;">Location</th>
+                    <th style="padding: 15px 25px; color: #64748b; font-size: 14px; font-weight: 600;">Original Price</th>
+                    <th style="padding: 15px 25px; color: #64748b; font-size: 14px; font-weight: 600;">Discount</th>
+                    <th style="padding: 15px 25px; color: #64748b; font-size: 14px; font-weight: 600;">Final Price</th>
+                    <th style="padding: 15px 25px; color: #64748b; font-size: 14px; font-weight: 600;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in comparison %}
+                <tr
+                    style="border-bottom: 1px solid #f1f5f9; {% if item.is_current %}background: #f0f7ff; border-left: 4px solid #2874f0;{% elif item.vendor_id == best_deal.vendor_id and item.source == best_deal.source %}background: #fffdf5;{% endif %}">
+                    <td style="padding: 18px 25px;">
+                        <div style="font-weight: 600; color: #1e293b;">
+                            {{ item.vendor_name }}
+                            {% if item.is_current %}
+                            <span style="font-size: 10px; color: #2874f0; margin-left: 5px; background: #e0eeff; padding: 2px 6px; border-radius: 4px;">CURRENT</span>
+                            {% endif %}
+                        </div>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                            <i class="fas {% if item.source == 'Platform Seller' %}fa-store{% else %}fa-globe{% endif %}"></i> {{ item.source }}
+                        </div>
+                        {% if item.vendor_id == best_deal.vendor_id and item.source == best_deal.source %}
+                        <span
+                            style="background: #fef3c7; color: #92400e; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 700; text-transform: uppercase;">
+                            Best Deal
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 18px 25px; color: #475569; font-size: 14px;">
+                        <i class="fas fa-map-marker-alt" style="font-size: 11px; margin-right: 4px; color: #94a3b8;"></i> {{ item.location }}
+                    </td>
+                    <td style="padding: 18px 25px; color: #94a3b8; text-decoration: line-through;">
+                        ₹{{ item.base_price|floatformat:2 }}
+                    </td>
+                    <td style="padding: 18px 25px; color: #10b981; font-weight: 600;">
+                        {{ item.discount|floatformat:0 }}% Off
+                    </td>
+                    <td style="padding: 18px 25px; font-size: 18px; font-weight: 700; color: #1e293b;">
+                        ₹{{ item.final_price|floatformat:2 }}
+                    </td>
+                    <td style="padding: 18px 25px;">
+                        <form action="{% url 'add_to_cart' product.id %}" method="POST" style="margin: 0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="price" value="{{ item.final_price }}">
+                            <input type="hidden" name="size" value="">
+                            {% if default_weight %}
+                            <input type="hidden" name="weight" value="{{ default_weight }}">
+                            {% endif %}
+                            <button type="submit"
+                                style="background: #fb6a19; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px;">
+                                Add to Cart
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="padding: 40px; text-align: center; color: #94a3b8;">
+                        No other vendors available for this product.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- AI Alternatives Suggestion -->
+    <div style="background: #f8fafc; border-radius: 16px; padding: 30px; border: 1px dashed #cbd5e1;">
+        <h2 style="margin-top: 0; font-size: 20px; color: #1e293b;">
+            <i class="fas fa-robot" style="color: #fb6a19; margin-right: 10px;"></i> AI Smart Suggestions
+        </h2>
+        <p style="color: #64748b; font-size: 14px; margin-bottom: 25px;">
+            Found these cost-effective alternatives in the same category:
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+            {% for alt in alternatives %}
+            <div
+                style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid #f1f5f9; display: flex; flex-direction: column;">
+                <div style="font-size: 11px; color: #fb6a19; font-weight: 700; text-transform: uppercase;">
+                    {{ alt.brand }}
+                </div>
+                <h3 style="margin: 5px 0; font-size: 16px; color: #1e293b; flex: 1;">
+                    {{ alt.name }}
+                </h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                    <div style="font-size: 18px; font-weight: 700; color: #1e293b;">
+                        ₹{{ alt.price }}
+                    </div>
+                    <a href="{% url 'product_price_details' alt.id %}"
+                        style="color: #3b82f6; font-size: 13px; text-decoration: none; font-weight: 600;">
+                        Compare →
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+    body {
+        background: #fdfdfd;
+    }
+</style>

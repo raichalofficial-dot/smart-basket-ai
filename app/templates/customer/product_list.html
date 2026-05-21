@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load custom_filters %}
+
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Basket - Product Search</title>
+
+  <style>
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background-color: #f4f7f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      padding: 20px 40px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin: 30px 0;
+      font-weight: 600;
+    }
+
+    .smart-tag {
+      text-align: center;
+      color: #2874f0;
+      background: #e3f2fd;
+      display: inline-block;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-weight: 600;
+      margin: 0 auto 20px auto;
+      display: table;
+    }
+
+    .products-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 25px;
+      justify-content: center;
+    }
+
+    .product-card {
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      width: 260px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .product-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .product-content {
+      padding: 15px;
+      flex-grow: 1;
+    }
+
+    .product-name {
+      font-size: 17px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .short-description {
+      font-size: 14px;
+      color: #7f8c8d;
+      margin-bottom: 12px;
+      min-height: 40px;
+    }
+
+    .price-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .original-price {
+      text-decoration: line-through;
+      color: #bdc3c7;
+      font-size: 14px;
+    }
+
+    .selling-price {
+      color: #27ae60;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .discount-badge {
+      background-color: #e67e22;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 6px;
+      border-radius: 4px;
+    }
+
+    .brand {
+      font-size: 13px;
+      color: #95a5a6;
+      font-style: italic;
+      margin-top: 10px;
+    }
+
+    .actions {
+      padding: 0 15px 15px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 10px 0;
+      border-radius: 6px;
+      font-weight: 600;
+      text-align: center;
+      text-decoration: none;
+      transition: 0.2s;
+      font-size: 14px;
+    }
+
+    .btn-cart {
+      background: #2874f0;
+      color: white;
+    }
+
+    .btn-cart:hover {
+      background: #1e5fcc;
+    }
+
+    .confidence-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(46, 204, 113, 0.9);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: bold;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-wish {
+      background: #fff;
+      color: #e23744;
+      border: 1px solid #e23744;
+    }
+
+    .btn-wish:hover {
+      background: #fff5f5;
+    }
+
+    .smart-tag {
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+      display: inline-block;
+      width: 100%;
+      text-align: center;
+      font-size: 18px;
+    }
+  </style>
+</head>
+
+<body>
+  {% include 'customer/navbar.html' %}
+
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1 style="margin: 0;">Product Results</h1>
+        <div class="sort-box" style="display: flex; align-items: center; gap: 10px;">
+            <label style="font-weight: 600; font-size: 14px; color: #666;">Sort By:</label>
+            <select onchange="location.href='?q={{ query }}&sort='+this.value" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #ddd; outline: none; cursor: pointer;">
+                <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Newest First</option>
+                <option value="price_low_high" {% if request.GET.sort == 'price_low_high' %}selected{% endif %}>Price: Low to High</option>
+                <option value="price_high_low" {% if request.GET.sort == 'price_high_low' %}selected{% endif %}>Price: High to Low</option>
+            </select>
+        </div>
+    </div>
+
+    {% if is_smart %}
+    <div class="smart-tag">
+      ✨ AI Search Active: "{{ query }}"
+    </div>
+    {% elif query %}
+    <div class="smart-tag" style="background: #eee; color: #666;">
+      Showing results for: "{{ query }}"
+    </div>
+    {% endif %}
+
+    <div class="products-grid">
+      {% for product in products %}
+      <div class="product-card">
+        <a href="{% url 'product_detail' product.id %}" style="position: relative; display: block;">
+          {% if product.image_url %}
+          <img src="{{ product.image_url }}" alt="{{ product.name }}">
+          {% else %}
+          <img src="https://via.placeholder.com/260x180?text=No+Image">
+          {% endif %}
+
+          {% if is_smart and confidence_scores %}
+          {% with prod_id=product.id|stringformat:"s" %}
+          {% if confidence_scores|get_item:prod_id %}
+          <div class="confidence-badge">
+            🎯 {{ confidence_scores|get_item:prod_id }}% Match
+          </div>
+          {% endif %}
+          {% endwith %}
+          {% endif %}
+        </a>
+
+        <div class="product-content">
+          <div class="product-name">{{ product.name }}</div>
+          <div class="short-description">{{ product.short_description }}</div>
+
+          <div class="price-section">
+            <span class="original-price">₹{{ product.price|floatformat:2 }}</span>
+            <span class="selling-price">₹{{ product.selling_price|floatformat:2 }}</span>
+            {% if product.discount > 0 %}
+            <span class="discount-badge">{{ product.discount|floatformat:0 }}% OFF</span>
+            {% endif %}
+          </div>
+
+          <div class="brand">By {{ product.brand_name }}</div>
+          <div class="seller-name" style="font-size: 11px; color: #555; margin-top: 5px;">Seller: {{ product.seller_name }}</div>
+
+          <div style="margin-top: 5px; font-size: 12px; font-weight: 600;">
+            <span style="color: {% if product.product_type == 'piece' and product.stock <= 0 %}#e74c3c{% else %}#2ecc71{% endif %};">
+                ● {% if product.product_type == 'piece' %}{% if product.stock > 0 %}In Stock{% else %}Out of Stock{% endif %}{% else %}Available{% endif %}
+            </span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <a href="{% url 'add_to_cart' product.id %}" class="btn btn-cart">🛒 Add</a>
+          <a href="{% url 'add_to_wishlist' product.id %}" class="btn btn-wish">❤️ Wish</a>
+        </div>
+      </div>
+      {% empty %}
+      <div style="text-align: center; width: 100%; padding: 50px;">
+        <p style="font-size: 20px; color: #7f8c8d;">No products found matching your search.</p>
+        <a href="{% url 'customer_index' %}" style="color: #2874f0;">Back to Home</a>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if alternatives %}
+    <div style="margin-top: 60px;">
+      <h2 style="text-align:center; color:#2c3e50;">Suggested Alternatives</h2>
+      <p style="text-align:center; color:#7f8c8d; margin-bottom:30px;">We couldn't find an exact match, but you might
+        like these:</p>
+      <div class="products-grid">
+        {% for product in alternatives %}
+        <div class="product-card">
+          <a href="{% url 'product_detail' product.id %}">
+            {% if product.image_url %}
+            <img src="{{ product.image_url }}" alt="{{ product.name }}">
+            {% else %}
+            <img src="https://via.placeholder.com/260x180?text=No+Image">
+            {% endif %}
+          </a>
+          <div class="product-content">
+            <div class="product-name">{{ product.name }}</div>
+            <div class="short-description">{{ product.short_description }}</div>
+            <div class="price-section">
+              <span class="original-price">₹{{ product.price|floatformat:2 }}</span>
+              <span class="selling-price">₹{{ product.selling_price|floatformat:2 }}</span>
+            </div>
+            <div class="brand">By {{ product.brand_name }}</div>
+            <div class="seller-name" style="font-size: 11px; color: #555; margin-top: 5px;">Seller: {{ product.seller_name }}</div>
+          </div>
+          <div class="actions">
+            <a href="{% url 'add_to_cart' product.id %}" class="btn btn-cart">🛒 Add</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Arbitration Control | Admin Neural Matrix</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+        .neural-modal-backdrop {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-800 h-screen flex overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="w-72 bg-white border-r border-slate-200 flex flex-col hidden lg:flex shrink-0 relative z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+        <div class="h-24 flex items-center px-8 border-b border-slate-50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg shadow-slate-200">
+                    <i class="fas fa-shield-halved text-lg italic"></i>
+                </div>
+                <div>
+                    <span class="block font-black text-xl tracking-tight text-slate-800 italic">AiMART</span>
+                    <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest -mt-1 italic">Arbitration Hub</span>
+                </div>
+            </div>
+        </div>
+
+        <nav class="px-6 py-8 flex-1 space-y-1 overflow-y-auto">
+            <div class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-4 px-2 italic">Neural Sorting</div>
+            <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-4 px-4 py-4 text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-2xl transition-all italic">
+                <i class="fas fa-microchip w-5 text-center text-[16px]"></i> Perspectives
+            </a>
+            <a href="{% url 'admin_seller_analysis' %}" class="flex items-center gap-4 px-4 py-4 text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-2xl transition-all italic">
+                <i class="fas fa-brain-circuit w-5 text-center text-orange-500 text-[16px]"></i> Merchant AI
+            </a>
+            <a href="{% url 'admin_delivery_report' %}" class="flex items-center gap-4 px-4 py-4 text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-2xl transition-all italic">
+                <i class="fas fa-route w-5 text-center text-blue-400 text-[16px]"></i> Fleet Ops
+            </a>
+            <a href="{% url 'admin_manage_complaints' %}" class="flex items-center gap-4 px-4 py-4 text-xs font-black uppercase tracking-widest bg-slate-900 text-white rounded-2xl shadow-xl shadow-slate-200 transition-all italic">
+                <i class="fas fa-shield-halved w-5 text-center text-rose-400 text-[16px]"></i> Arbitration
+            </a>
+        </nav>
+
+        <div class="p-8 border-t border-slate-50">
+            <a href="{% url 'logout' %}" class="flex items-center justify-between px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-red-500 font-black text-[10px] tracking-widest uppercase hover:bg-red-50 transition-all italic">
+                Terminate Sync <i class="fas fa-power-off"></i>
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto p-10 relative">
+        <!-- HEADER -->
+        <header class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 text-[10px] font-black text-rose-600 uppercase tracking-widest mb-4 italic">
+                    <i class="fas fa-tower-broadcast animate-pulse"></i> Neural Monitoring active
+                </div>
+                <h2 class="text-4xl font-black text-slate-800 tracking-tight italic uppercase">Conflict Resolution Sync</h2>
+                <p class="text-sm text-slate-400 mt-2 font-medium">AI-prioritized arbitration matrix and anomaly tracking system.</p>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <div class="px-6 py-3 bg-white border border-slate-200 rounded-2xl shadow-sm italic">
+                    <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 italic">Active Anomalies</div>
+                    <div class="text-xl font-black text-slate-800 italic">{{ complaints|length }} NODES</div>
+                </div>
+                <div class="w-16 h-16 bg-slate-900 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl shadow-slate-200">
+                    <i class="fas fa-fingerprint text-2xl italic"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- SEARCH & FILTERS -->
+        <div class="bg-white rounded-[2.5rem] p-10 mb-10 border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-8 items-end">
+                <div class="space-y-3">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1 italic">Priority Vector</label>
+                    <select name="priority" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:border-rose-500 outline-none transition-all appearance-none italic">
+                        <option value="">All Gravities</option>
+                        <option value="HIGH" {% if priority_filter == 'HIGH' %}selected{% endif %}>Critical Red</option>
+                        <option value="MEDIUM" {% if priority_filter == 'MEDIUM' %}selected{% endif %}>Stable Amber</option>
+                        <option value="LOW" {% if priority_filter == 'LOW' %}selected{% endif %}>Neutral Green</option>
+                    </select>
+                </div>
+                <div class="space-y-3">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1 italic">Resolution State</label>
+                    <select name="status" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:border-rose-500 outline-none transition-all appearance-none italic">
+                        <option value="">All States</option>
+                        <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending Sync</option>
+                        <option value="In Progress" {% if status_filter == 'In Progress' %}selected{% endif %}>Processing</option>
+                        <option value="Resolved" {% if status_filter == 'Resolved' %}selected{% endif %}>Finalized</option>
+                    </select>
+                </div>
+                <div class="space-y-3">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1 italic">Operation Trace</label>
+                    <input type="text" name="order_id" placeholder="Trace ID..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:border-rose-500 outline-none transition-all italic" value="{{ order_id_search }}">
+                </div>
+                <div class="flex gap-4">
+                    <button type="submit" class="flex-1 bg-slate-900 hover:bg-rose-600 text-white text-[10px] font-black uppercase tracking-[0.2em] py-5 px-6 rounded-2xl transition-all shadow-xl shadow-slate-100 flex items-center justify-center gap-3 italic">
+                        Run Query <i class="fas fa-radar"></i>
+                    </button>
+                    <a href="{% url 'admin_manage_complaints' %}" class="w-16 bg-slate-50 border border-slate-200 flex items-center justify-center rounded-2xl text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-all italic">
+                        <i class="fas fa-rotate-left"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- COMPLAINTS MATRIX -->
+        <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden mb-12">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-slate-50/50 text-[10px] font-black uppercase text-slate-400 italic">
+                            <th class="px-10 py-6 tracking-widest">Anomaly ID</th>
+                            <th class="px-10 py-6 tracking-widest">Consumer Node</th>
+                            <th class="px-10 py-6 tracking-widest">Neural Signature</th>
+                            <th class="px-10 py-6 tracking-widest">Gravity</th>
+                            <th class="px-10 py-6 tracking-widest">Sync State</th>
+                            <th class="px-10 py-6 text-right tracking-widest">Override</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        {% for complaint in complaints %}
+                        <tr class="hover:bg-slate-50/80 transition-all group">
+                            <td class="px-10 py-8">
+                                <div class="text-xs font-black text-slate-800 italic uppercase">#C-{{ complaint.id|stringformat:"04d" }}</div>
+                                {% if complaint.order %}
+                                <div class="text-[9px] font-black text-indigo-500 mt-1 uppercase tracking-widest italic flex items-center gap-1.5 leading-none">
+                                    <i class="fas fa-link text-[8px]"></i> OP #{{ complaint.order.id }}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="px-10 py-8">
+                                <div class="text-xs font-black text-slate-700 italic uppercase tracking-tight">{{ complaint.customer.username }}</div>
+                                <div class="text-[9px] font-black text-slate-400 mt-1 uppercase tracking-widest italic">{{ complaint.created_at|date:"D d M Y"|upper }}</div>
+                            </td>
+                            <td class="px-10 py-8">
+                                <div class="text-xs font-black text-slate-800 italic uppercase tracking-tight truncate w-64">{{ complaint.title }}</div>
+                                <div class="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-widest italic truncate w-64 opacity-60">{{ complaint.text }}</div>
+                            </td>
+                            <td class="px-10 py-8">
+                                {% if complaint.priority == 'HIGH' %}
+                                <div class="flex items-center gap-2 px-3 py-1.5 bg-rose-50 border border-rose-100 rounded-xl w-fit">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></div>
+                                    <span class="text-[8px] font-black text-rose-700 uppercase tracking-widest italic leading-none">Critical Red</span>
+                                </div>
+                                {% elif complaint.priority == 'MEDIUM' %}
+                                <div class="flex items-center gap-2 px-3 py-1.5 bg-orange-50 border border-orange-100 rounded-xl w-fit">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
+                                    <span class="text-[8px] font-black text-orange-700 uppercase tracking-widest italic leading-none">Stable Amber</span>
+                                {% else %}
+                                <div class="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-xl w-fit">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                                    <span class="text-[8px] font-black text-emerald-700 uppercase tracking-widest italic leading-none">Neutral Green</span>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="px-10 py-8">
+                                <span class="px-3 py-1.5 rounded-xl text-[8px] font-black uppercase tracking-widest italic border
+                                    {% if complaint.status == 'Resolved' %}bg-emerald-500 text-white border-emerald-600 shadow-sm
+                                    {% elif complaint.status == 'In Progress' %}bg-orange-500 text-white border-orange-600 shadow-sm
+                                    {% else %}bg-slate-100 text-slate-400 border-slate-200{% endif %}">
+                                    {{ complaint.status|upper }}
+                                </span>
+                            </td>
+                            <td class="px-10 py-8 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <button class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm" onclick="toggleModal('modal-{{ complaint.id }}')">
+                                        <i class="fas fa-expand text-xs"></i>
+                                    </button>
+                                    <div class="relative group/menu">
+                                        <button class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white hover:bg-rose-600 transition-all shadow-lg">
+                                            <i class="fas fa-ellipsis-v text-xs"></i>
+                                        </button>
+                                        <div class="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl py-3 z-30 hidden group-hover/menu:block animate-in fade-in slide-in-from-top-2 duration-200">
+                                            <div class="px-5 py-2 text-[9px] font-black text-slate-300 uppercase tracking-widest italic border-b border-slate-50 mb-2">Override Status</div>
+                                            <a href="{% url 'update_complaint_status' complaint.id 'Pending' %}" class="block px-5 py-2.5 text-[10px] font-black text-slate-600 uppercase tracking-widest hover:bg-slate-50 hover:text-indigo-600 transition-all italic">Set Pending</a>
+                                            <a href="{% url 'update_complaint_status' complaint.id 'In Progress' %}" class="block px-5 py-2.5 text-[10px] font-black text-slate-600 uppercase tracking-widest hover:bg-slate-50 hover:text-orange-600 transition-all italic">Set Processing</a>
+                                            <a href="{% url 'update_complaint_status' complaint.id 'Resolved' %}" class="block px-5 py-2.5 text-[10px] font-black text-emerald-600 uppercase tracking-widest hover:bg-emerald-50 transition-all italic">Mark Finalized</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- NEURAL MODAL -->
+                        <div id="modal-{{ complaint.id }}" class="fixed inset-0 z-[100] hidden neural-modal-backdrop flex items-center justify-center p-6 sm:p-12">
+                            <div class="bg-white w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                                <div class="p-10 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+                                    <div>
+                                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 italic">Anomaly Synchronization</div>
+                                        <h3 class="text-xl font-black text-slate-800 tracking-tight italic uppercase">Detail Log #{{ complaint.id }}</h3>
+                                    </div>
+                                    <button onclick="toggleModal('modal-{{ complaint.id }}')" class="w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="p-12 space-y-10">
+                                    <div class="flex justify-between items-start gap-8">
+                                        <div class="space-y-1">
+                                            <div class="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">Vector Correlation</div>
+                                            <div class="text-xs font-black text-indigo-600 italic uppercase">OP #{{ complaint.order.id }}</div>
+                                        </div>
+                                        <div class="text-right space-y-1">
+                                            <div class="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">Signal Temporal</div>
+                                            <div class="text-xs font-black text-slate-500 italic uppercase">{{ complaint.created_at|date:"F d, Y H:i"|upper }}</div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="text-2xl font-black text-slate-800 tracking-tight italic uppercase mb-6">{{ complaint.title }}</h4>
+                                        <div class="p-8 bg-slate-50 border border-slate-100 rounded-[2rem] text-sm text-slate-600 font-medium leading-relaxed italic">
+                                            "{{ complaint.text }}"
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-8">
+                                        <div class="p-6 bg-slate-50/50 border border-slate-100 rounded-3xl text-center">
+                                            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 italic">Calculated Gravity</div>
+                                            <div class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-100 rounded-xl shadow-sm">
+                                                <div class="w-1.5 h-1.5 rounded-full bg-{% if complaint.priority == 'HIGH' %}rose{% elif complaint.priority == 'MEDIUM' %}orange{% else %}emerald{% endif %}-500"></div>
+                                                <span class="text-[10px] font-black uppercase tracking-widest italic text-slate-700">{{ complaint.priority }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="p-6 bg-slate-50/50 border border-slate-100 rounded-3xl text-center">
+                                            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 italic">State Lock</div>
+                                            <div class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-100 rounded-xl shadow-sm">
+                                                <span class="text-[10px] font-black uppercase tracking-widest italic text-slate-700">{{ complaint.status }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-10 bg-slate-50/50 border-t border-slate-100 flex gap-4">
+                                    <button onclick="toggleModal('modal-{{ complaint.id }}')" class="flex-1 px-8 py-5 bg-white border border-slate-200 rounded-3xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:bg-slate-100 transition-all italic">Discard Stream</button>
+                                    <a href="{% url 'update_complaint_status' complaint.id 'Resolved' %}" class="flex-[1.5] px-8 py-5 bg-indigo-600 text-white rounded-3xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all shadow-xl shadow-indigo-100 text-center italic">Finalize Arbitration</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-10 py-40 text-center">
+                                <div class="flex flex-col items-center gap-10 opacity-20">
+                                    <div class="relative">
+                                        <i class="fas fa-shield-check text-7xl italic"></i>
+                                        <div class="absolute -top-2 -right-2 w-4 h-4 bg-emerald-500 rounded-full animate-ping"></div>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-[13px] font-black uppercase tracking-[0.3em] italic mb-2">Neural Sector Clear</h4>
+                                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">All anomalies reconciled by matrix</p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer class="mt-20 pt-10 border-t border-slate-100 pb-10 text-center">
+            <div class="flex items-center justify-center gap-6 mb-4">
+                <div class="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+                <span class="text-[9px] font-black text-slate-300 uppercase tracking-[0.4em] italic leading-none">Global Connectivity: Operational</span>
+                <div class="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+            </div>
+            <p class="text-[10px] font-black text-slate-200 uppercase tracking-widest italic leading-none">AiMART NEURAL INFRASTRUCTURE v4.0.2</p>
+        </footer>
+    </main>
+
+    <script>
+        function toggleModal(id) {
+            const modal = document.getElementById(id);
+            if(modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+    </script>
+</body>
+</html>

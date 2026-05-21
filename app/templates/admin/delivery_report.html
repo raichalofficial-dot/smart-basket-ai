@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Logistics Telemetry | Admin Neural Sync</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-800 h-screen flex overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="w-72 bg-white border-r border-slate-200 flex flex-col hidden lg:flex shrink-0 relative z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+        <div class="h-24 flex items-center px-8 border-b border-slate-50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg shadow-slate-200">
+                    <i class="fas fa-truck-fast text-lg italic"></i>
+                </div>
+                <div>
+                    <span class="block font-black text-xl tracking-tight text-slate-800 italic">AiMART</span>
+                    <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest -mt-1 italic">Logistics Hub</span>
+                </div>
+            </div>
+        </div>
+
+        <nav class="px-6 py-8 flex-1 space-y-1 overflow-y-auto">
+            <div class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-4 px-2 italic">Routing Control</div>
+            <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-4 px-4 py-4 text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-2xl transition-all italic">
+                <i class="fas fa-microchip w-5 text-center text-[16px]"></i> Perspectives
+            </a>
+            <a href="{% url 'admin_seller_analysis' %}" class="flex items-center gap-4 px-4 py-4 text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-2xl transition-all italic">
+                <i class="fas fa-brain-circuit w-5 text-center text-orange-500 text-[16px]"></i> Merchant AI
+            </a>
+            <a href="{% url 'admin_delivery_report' %}" class="flex items-center gap-4 px-4 py-4 text-xs font-black uppercase tracking-widest bg-slate-900 text-white rounded-2xl shadow-xl shadow-slate-200 transition-all italic">
+                <i class="fas fa-route w-5 text-center text-blue-400 text-[16px]"></i> Fleet Ops
+            </a>
+            <a href="{% url 'admin_manage_complaints' %}" class="flex items-center gap-4 px-4 py-4 text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-2xl transition-all italic">
+                <i class="fas fa-shield-halved w-5 text-center text-[16px]"></i> Arbitration
+            </a>
+        </nav>
+
+        <div class="p-8 border-t border-slate-50">
+            <a href="{% url 'logout' %}" class="flex items-center justify-between px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-red-500 font-black text-[10px] tracking-widest uppercase hover:bg-red-50 transition-all italic">
+                Terminate Sync <i class="fas fa-power-off"></i>
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto p-10 relative">
+        <!-- HEADER -->
+        <header class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-[10px] font-black text-blue-600 uppercase tracking-widest mb-4 italic">
+                    <i class="fas fa-satellite animate-pulse"></i> Operational Telemetry
+                </div>
+                <h2 class="text-4xl font-black text-slate-800 tracking-tight italic uppercase">Fleet Propagation Sync</h2>
+                <p class="text-sm text-slate-400 mt-2 font-medium">Synthesize logistics efficiency and real-time transition vectors.</p>
+            </div>
+        </header>
+
+        <!-- REPORT FILTER PANEL -->
+        <div class="bg-white rounded-[2.5rem] p-10 mb-10 border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 items-end">
+                <div class="space-y-3">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1 italic">Logistics Node</label>
+                    <select id="partner_id" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:border-blue-500 outline-none transition-all appearance-none italic">
+                        <option value="all">Global Fleet Cluster</option>
+                        {% for partner in partners %}
+                        <option value="{{ partner.id }}">{{ partner.name|upper }} UNIT</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="space-y-3">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1 italic">Temporal Threshold</label>
+                    <input type="date" id="report_date" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:border-blue-500 outline-none transition-all italic">
+                </div>
+                <button onclick="generateReport()" class="bg-blue-600 hover:bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] py-5 px-8 rounded-2xl transition-all shadow-xl shadow-blue-100 flex items-center justify-center gap-3 italic">
+                    Sync Dynamics <i class="fas fa-bolt-lightning text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- STATS CARDS -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-12">
+            <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic">Total Ops</div>
+                <div class="text-3xl font-black text-slate-800 italic" id="stat-total">0</div>
+            </div>
+            <div class="bg-emerald-50/50 p-8 rounded-3xl border border-emerald-100 shadow-sm">
+                <div class="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-3 italic">Terminal</div>
+                <div class="text-3xl font-black text-emerald-700 italic" id="stat-delivered">0</div>
+            </div>
+            <div class="bg-orange-50/50 p-8 rounded-3xl border border-orange-100 shadow-sm">
+                <div class="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-3 italic">Active</div>
+                <div class="text-3xl font-black text-orange-700 italic" id="stat-out">0</div>
+            </div>
+            <div class="bg-blue-50/50 p-8 rounded-3xl border border-blue-100 shadow-sm">
+                <div class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-3 italic">Staged</div>
+                <div class="text-3xl font-black text-blue-700 italic" id="stat-pending">0</div>
+            </div>
+            <div class="bg-rose-50/50 p-8 rounded-3xl border border-rose-100 shadow-sm">
+                <div class="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-3 italic">Voids</div>
+                <div class="text-3xl font-black text-rose-700 italic" id="stat-cancelled">0</div>
+            </div>
+            <div class="bg-slate-900 p-8 rounded-3xl shadow-xl shadow-slate-200">
+                <div class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3 italic">Node Value</div>
+                <div class="text-2xl font-black text-white italic" id="stat-sales">₹0</div>
+            </div>
+        </div>
+
+        <!-- RESULTS GRID -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-12">
+            <!-- PIE CHART -->
+            <div class="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-sm flex flex-col">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-10 text-center italic">Distribution Topology</h3>
+                <div class="flex-1 relative min-h-[350px] flex items-center justify-center">
+                    <canvas id="deliveryPieChart"></canvas>
+                </div>
+            </div>
+
+            <!-- TABLE -->
+            <div class="lg:col-span-2 bg-white rounded-[2.5rem] border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+                <div class="p-10 border-b border-slate-50 flex justify-between items-center">
+                    <h3 class="text-lg font-black text-slate-800 tracking-tight italic uppercase">Fleet Transition Logs</h3>
+                    <div class="flex items-center gap-3">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">Live Stream</span>
+                    </div>
+                </div>
+                <div class="overflow-x-auto flex-1">
+                    <table class="w-full text-left" id="deliveryTable">
+                        <thead>
+                            <tr class="bg-slate-50/50 text-[10px] font-black uppercase text-slate-400 italic">
+                                <th class="px-10 py-5 tracking-widest">Vector ID</th>
+                                <th class="px-10 py-5 tracking-widest">Payload</th>
+                                <th class="px-10 py-5 tracking-widest">Assigned Node</th>
+                                <th class="px-10 py-5 tracking-widest">Connectivity</th>
+                                <th class="px-10 py-5 text-right tracking-widest">Temporal</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            <!-- Rows loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="noData" class="hidden py-32 text-center">
+                    <div class="flex flex-col items-center gap-6 opacity-20 italic">
+                        <i class="fas fa-satellite-dish text-5xl"></i>
+                        <p class="text-[11px] font-black uppercase tracking-[0.3em]">No propagation logs found in current sector</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-20 pt-10 border-t border-slate-100 pb-10 text-center">
+            <div class="flex items-center justify-center gap-6 mb-4">
+                <div class="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+                <span class="text-[9px] font-black text-slate-300 uppercase tracking-[0.4em] italic leading-none">Global Connectivity: Operational</span>
+                <div class="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+            </div>
+            <p class="text-[10px] font-black text-slate-200 uppercase tracking-widest italic leading-none">AiMART NEURAL INFRASTRUCTURE v4.0.2</p>
+        </footer>
+    </main>
+
+    <script>
+        let delPieChart = null;
+
+        function generateReport() {
+            const reportDate = document.getElementById('report_date').value;
+            const partnerId = document.getElementById('partner_id').value;
+            
+            fetch(`/api/delivery-report/?report_date=${reportDate}&partner_id=${partnerId}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('stat-total').innerText = data.total_deliveries;
+                    document.getElementById('stat-delivered').innerText = data.delivered;
+                    document.getElementById('stat-out').innerText = data.out_for_delivery;
+                    document.getElementById('stat-pending').innerText = data.pending;
+                    document.getElementById('stat-cancelled').innerText = data.cancelled;
+                    document.getElementById('stat-sales').innerText = '₹' + data.total_sales.toLocaleString();
+
+                    const tbody = document.querySelector('#deliveryTable tbody');
+                    const noData = document.getElementById('noData');
+                    tbody.innerHTML = '';
+                    
+                    if (data.deliveries.length === 0) {
+                        noData.classList.remove('hidden');
+                    } else {
+                        noData.classList.add('hidden');
+                        data.deliveries.forEach(d => {
+                            let statusClass = "bg-slate-100 text-slate-500 border-slate-200";
+                            if(d.status === 'DELIVERED') statusClass = "bg-emerald-500 text-white border-emerald-600";
+                            if(d.status === 'DISPATCHED') statusClass = "bg-orange-500 text-white border-orange-600";
+                            if(d.status === 'CANCELLED') statusClass = "bg-rose-600 text-white border-rose-700";
+                            if(d.status === 'PACKED' || d.status === 'NEARBY') statusClass = "bg-indigo-600 text-white border-indigo-700";
+
+                            tbody.innerHTML += `
+                                <tr class="hover:bg-slate-50 transition-all group">
+                                    <td class="px-10 py-6 font-black text-slate-800 text-xs italic uppercase tracking-tighter">#V-${d.order_id}</td>
+                                    <td class="px-10 py-6 font-black text-slate-600 text-xs italic">₹${d.amount}</td>
+                                    <td class="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic leading-none">${d.partner.toUpperCase()} unit</td>
+                                    <td class="px-10 py-6">
+                                        <span class="px-3 py-1.5 rounded-xl border ${statusClass} text-[8px] font-black uppercase tracking-widest italic shadow-sm">${d.status}</span>
+                                    </td>
+                                    <td class="px-10 py-6 text-right font-black text-[9px] text-slate-300 uppercase tracking-tighter italic">${d.time}</td>
+                                </tr>
+                            `;
+                        });
+                    }
+
+                    const ctxPie = document.getElementById('deliveryPieChart').getContext('2d');
+                    const chartData = [data.delivered, data.pending, data.out_for_delivery, data.cancelled];
+                    
+                    if (delPieChart) {
+                        delPieChart.data.datasets[0].data = chartData;
+                        delPieChart.update();
+                    } else {
+                        delPieChart = new Chart(ctxPie, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['TERMINAL', 'STAGED', 'TRANSIT', 'VOID'],
+                                datasets: [{
+                                    data: chartData,
+                                    backgroundColor: ['#10b981', '#4f46e5', '#f59e0b', '#ef4444'],
+                                    borderColor: '#ffffff',
+                                    borderWidth: 10,
+                                    hoverOffset: 20
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                cutout: '80%',
+                                plugins: {
+                                    legend: { 
+                                        position: 'bottom', 
+                                        labels: { 
+                                            usePointStyle: true,
+                                            padding: 30,
+                                            font: { size: 9, weight: '900', family: "'Outfit', sans-serif" },
+                                            color: '#cbd5e1'
+                                        } 
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const dateInput = document.getElementById('report_date');
+            if(dateInput) {
+                dateInput.value = new Date().toISOString().split('T')[0];
+                generateReport();
+            }
+        });
+    </script>
+</body>
+</html>

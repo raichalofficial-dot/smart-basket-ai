@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Smart Pantry</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            color: #1e293b;
+        }
+        
+        .pantry-header {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .pantry-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 32px;
+        }
+        
+        .pantry-header p {
+            margin: 0;
+            color: #bfdbfe;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: -30px auto 40px;
+            padding: 0 20px;
+        }
+        
+        .alerts-section {
+            margin-bottom: 30px;
+        }
+        
+        .alert-card {
+            background: white;
+            border-left: 5px solid #ef4444;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .alert-card.warning { border-left-color: #f59e0b; }
+        
+        .alert-info h4 { margin: 0 0 5px 0; color: #1e293b; }
+        .alert-info p { margin: 0; color: #64748b; font-size: 14px; }
+        
+        .btn-reorder {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+        .btn-reorder:hover { background: #1d4ed8; }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .item-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .item-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .item-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-success { background: #dcfce7; color: #166534; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        
+        .item-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box { text-align: center; }
+        .stat-value { font-size: 20px; font-weight: 700; color: #1e293b; }
+        .stat-label { font-size: 12px; color: #64748b; margin-top: 4px; }
+        
+        .prediction {
+            font-size: 14px;
+            color: #475569;
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .prediction i { color: #8b5cf6; }
+
+        .add-item-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+        
+        .add-item-bar input, .add-item-bar select {
+            padding: 10px 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            outline: none;
+            font-family: inherit;
+        }
+        
+        .add-item-bar input { flex: 1; }
+        
+        .btn-add {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-add:hover { background: #059669; }
+
+        .top-nav {
+            background: white;
+            padding: 15px 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .top-nav a {
+            color: #475569;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-nav">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <a href="{% url 'customer_index' %}"><i class="fas fa-arrow-left"></i> Back to Store</a>
+        </div>
+    </div>
+
+    <div class="pantry-header">
+        <h1>🤖 Smart Pantry Tracker</h1>
+        <p>AI-powered inventory management for your home</p>
+    </div>
+
+    <div class="container">
+        
+        <!-- Add to Pantry Manually -->
+        <div class="add-item-bar">
+            <select id="manual_product_id" style="flex: 2;">
+                <option value="">-- Select Product to Track --</option>
+                {% for product in all_products %}
+                <option value="{{ product.id }}">{{ product.name }}</option>
+                {% endfor %}
+            </select>
+            <input type="number" id="manual_qty" placeholder="Quantity" min="1" step="0.5" style="flex: 1;">
+            <select id="manual_unit" style="flex: 1;">
+                <option value="packs">Packs</option>
+                <option value="kg">Kg</option>
+                <option value="items">Items</option>
+                <option value="litres">Litres</option>
+            </select>
+            <button class="btn-add" onclick="manualAddPantry()">+ Track Item</button>
+        </div>
+
+        <!-- Low Stock Alerts -->
+        {% if alerts %}
+        <div class="alerts-section">
+            <h3 style="color: #0f172a; margin-bottom: 15px;"><i class="fas fa-bell" style="color: #ef4444;"></i> Reorder Alerts</h3>
+            
+            {% for alert in alerts %}
+            <div class="alert-card {{ alert.type }}">
+                <div class="alert-info">
+                    <h4>{{ alert.product_name }}</h4>
+                    <p>{{ alert.reason }}</p>
+                </div>
+                <a href="{% url 'product_detail' alert.product_id %}" class="btn-reorder">Quick Reorder</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Pantry Items Grid -->
+        <h3 style="color: #0f172a; margin-bottom: 15px;"><i class="fas fa-box-open" style="color: #3b82f6;"></i> My Pantry</h3>
+        
+        <div class="dashboard-grid">
+            {% for item in pantry_data %}
+            <div class="item-card">
+                <div class="item-header">
+                    <div class="item-title">{{ item.product.name }}</div>
+                    <span class="badge badge-{{ item.status_color }}">{{ item.status }}</span>
+                </div>
+                
+                <div class="item-stats">
+                    <div class="stat-box">
+                        <div class="stat-value">{{ item.quantity|floatformat:1 }}</div>
+                        <div class="stat-label">Remaining ({{ item.unit }})</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">{{ item.daily_usage }}</div>
+                        <div class="stat-label">Daily Usage</div>
+                    </div>
+                </div>
+                
+                <div class="prediction">
+                    <i class="fas fa-magic"></i>
+                    {% if item.days_left == "30+" %}
+                        Will last over a month
+                    {% else %}
+                        Estimated to run out in <strong>{{ item.days_left }} days</strong>
+                    {% endif %}
+                </div>
+                
+                <a href="{% url 'product_detail' item.product.id %}" style="display: block; text-align: center; margin-top: 15px; font-size: 12px; color: #3b82f6; text-decoration: none; font-weight: 600;">
+                    <i class="fas fa-star"></i> View Reviews & Ratings
+                </a>
+            </div>
+            {% empty %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 50px; background: white; border-radius: 12px;">
+                <i class="fas fa-box-open" style="font-size: 40px; color: #cbd5e1; margin-bottom: 15px;"></i>
+                <h3 style="color: #475569; margin: 0;">Your pantry is empty!</h3>
+                <p style="color: #94a3b8; margin-top: 10px;">Items you buy will automatically appear here, or you can track manually.</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+    </div>
+
+    <script>
+        function manualAddPantry() {
+            const productId = document.getElementById("manual_product_id").value;
+            const qty = document.getElementById("manual_qty").value;
+            const unit = document.getElementById("manual_unit").value;
+
+            if (!productId || !qty) {
+                alert("Please select a product and enter a quantity.");
+                return;
+            }
+
+            fetch("{% url 'api_add_to_pantry' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    product_id: productId,
+                    quantity: qty,
+                    unit: unit
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    window.location.reload();
+                } else {
+                    alert("Error: " + data.message);
+                }
+            })
+            .catch(err => console.error("Pantry add error:", err));
+        }
+    </script>
+</body>
+</html>

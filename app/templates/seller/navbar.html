@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #f8f8f8;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #ffffff;
+            padding: 14px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .navbar a.logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: #e23744;
+            text-decoration: none;
+        }
+
+        .navbar-right a {
+            margin-left: 22px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .navbar-right a:hover {
+            color: #e23744;
+        }
+
+        /* DASHBOARD */
+        .dashboard {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 35px auto;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="navbar">
+        <a href="{% url 'seller_index' %}" class="logo">AiMart</a>
+
+        <div class="navbar-right">
+            <a href="/seller_profile/">Profile</a>
+            <a href="{% url 'manage_brands' %}">Manage Brand</a>
+            <a href="{% url 'manage_category' %}">Manage Category</a>
+            <a href="{% url 'manage_products' %}">Manage Product</a>
+            <a href="{% url 'seller_intelligence' %}">AI Intelligence</a>
+            <a href="{% url 'product_performance' %}">Performance</a>
+            <a href="{% url 'seller_complaints' %}">Complaints</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-warning fade show auto-alert" role="alert" id="autoAlert">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+</body>
+
+</html>

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fleet Dynamics | Admin Neural Sync</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+        .neural-glass {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+        }
+        #adminMap { 
+            height: 400px; 
+            border-radius: 2rem; 
+            z-index: 10;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-800 h-screen flex overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="w-72 bg-white border-r border-slate-200 flex flex-col hidden lg:flex shrink-0 relative z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+        <div class="h-24 flex items-center px-8 border-b border-slate-50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg shadow-slate-200">
+                    <i class="fas fa-truck-ramp-box text-lg italic"></i>
+                </div>
+                <div>
+                    <span class="block font-black text-xl tracking-tight text-slate-800 italic">AiMART</span>
+                    <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest -mt-1 italic">Fleet Command</span>
+                </div>
+            </div>
+        </div>
+
+        <nav class="px-6 py-8 flex-1 space-y-1 overflow-y-auto">
+            <div class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-4 px-2 italic">Sector Control</div>
+            <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-4 px-4 py-4 text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-2xl transition-all italic">
+                <i class="fas fa-microchip w-5 text-center text-[16px]"></i> Perspectives
+            </a>
+            <a href="{% url 'admin_seller_analysis' %}" class="flex items-center gap-4 px-4 py-4 text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-2xl transition-all italic">
+                <i class="fas fa-brain-circuit w-5 text-center text-orange-500 text-[16px]"></i> Merchant AI
+            </a>
+            <a href="{% url 'admin_delivery_report' %}" class="flex items-center gap-4 px-4 py-4 text-xs font-black uppercase tracking-widest bg-slate-900 text-white rounded-2xl shadow-xl shadow-slate-200 transition-all italic">
+                <i class="fas fa-satellite-dish w-5 text-center text-blue-400 text-[16px]"></i> Live Dynamics
+            </a>
+            <a href="{% url 'admin_manage_complaints' %}" class="flex items-center gap-4 px-4 py-4 text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-2xl transition-all italic">
+                <i class="fas fa-shield-halved w-5 text-center text-[16px]"></i> Arbitration
+            </a>
+        </nav>
+
+        <div class="p-8 border-t border-slate-50">
+            <a href="{% url 'admin_dashboard' %}" class="flex items-center justify-between px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-[10px] font-black text-slate-400 tracking-widest uppercase hover:bg-white hover:text-slate-900 transition-all italic shadow-sm">
+                Exit Terminal <i class="fas fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto p-10 relative">
+        <!-- HEADER -->
+        <header class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-4 italic">
+                    <i class="fas fa-radar animate-pulse"></i> Real-Time Propagation Mesh
+                </div>
+                <h2 class="text-4xl font-black text-slate-800 tracking-tight italic uppercase">Fleet Dynamics Dashboard</h2>
+                <p class="text-sm text-slate-400 mt-2 font-medium">Monitoring active transition vectors and agent fidelity across sectors.</p>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="px-6 py-3 bg-white border border-slate-200 rounded-2xl shadow-sm italic">
+                    <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 italic">Active Nodes</div>
+                    <div class="text-xl font-black text-slate-800 italic">{{ stats.total_agents }} UNITS</div>
+                </div>
+                <div class="w-16 h-16 bg-slate-900 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl shadow-slate-200 italic font-black">
+                    CMD
+                </div>
+            </div>
+        </header>
+
+        <!-- STATS GRID -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+            <div class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden group">
+                <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 italic">Active Vectors</div>
+                <div class="text-3xl font-black text-slate-800 tracking-tighter italic uppercase">{{ stats.active_deliveries }}</div>
+                <div class="mt-4 flex items-center gap-2">
+                    <i class="fas fa-shipping-fast text-blue-500 text-xs text-xs"></i>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Live in Sector</span>
+                </div>
+            </div>
+            
+            <div class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden group">
+                <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 italic">Terminal States</div>
+                <div class="text-3xl font-black text-emerald-500 tracking-tighter italic uppercase">{{ stats.completed_deliveries }}</div>
+                <div class="mt-4 flex items-center gap-2">
+                    <i class="fas fa-check-double text-emerald-500 text-xs"></i>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Successful Sync</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden group">
+                <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 italic">Avail. Bandwidth</div>
+                <div class="text-3xl font-black text-orange-500 tracking-tighter italic uppercase">{{ stats.available_agents }}</div>
+                <div class="mt-4 flex items-center gap-2">
+                    <i class="fas fa-users-viewfinder text-orange-500 text-xs"></i>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Idle capacity</span>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 p-8 rounded-[2rem] shadow-xl shadow-slate-200 relative overflow-hidden group">
+                <div class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-3 italic">Temporal Anomaly</div>
+                <div class="text-3xl font-black text-white tracking-tighter italic uppercase">{{ stats.delayed_deliveries }}</div>
+                <div class="mt-4 flex items-center gap-2">
+                    <i class="fas fa-triangle-exclamation text-rose-500 text-xs"></i>
+                    <span class="text-[10px] font-black text-white/40 uppercase tracking-widest italic">ETA > 45M</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- DELAYED WARNING SECTION -->
+        {% if delayed_deliveries %}
+        <div class="mb-12 bg-rose-50 border border-rose-100 rounded-[2.5rem] p-10 animate-pulse relative overflow-hidden">
+             <div class="absolute -right-10 -top-10 w-40 h-40 bg-rose-200/20 rounded-full blur-3xl"></div>
+             <div class="flex items-center gap-4 mb-8 relative z-10">
+                <div class="w-10 h-10 bg-rose-500 rounded-xl flex items-center justify-center text-white italic">
+                    <i class="fas fa-radiation"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-black text-rose-900 tracking-tight italic uppercase">High-Gravity Latency Detected</h3>
+                    <p class="text-[9px] font-black text-rose-400 uppercase tracking-widest italic">Resolution required: Node intervention</p>
+                </div>
+             </div>
+             
+             <div class="overflow-x-auto relative z-10">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="text-[9px] font-black uppercase text-rose-300 italic border-b border-rose-200/50">
+                            <th class="px-6 py-4">Trace ID</th>
+                            <th class="px-6 py-4">Target Node</th>
+                            <th class="px-6 py-4">Assigned Agent</th>
+                            <th class="px-6 py-4">Latency Factor</th>
+                            <th class="px-6 py-4">Atmospherics</th>
+                            <th class="px-6 py-4 text-right">Emergency Trace</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-rose-200/30">
+                        {% for d in delayed_deliveries %}
+                        <tr class="text-rose-900/80">
+                            <td class="px-6 py-4 font-black italic text-xs">#V-{{ d.order.id }}</td>
+                            <td class="px-6 py-4 font-black italic text-xs uppercase">{{ d.order.full_name }}</td>
+                            <td class="px-6 py-4 font-black italic text-xs uppercase">{{ d.agent.name|default:"UNASSIGNED" }}</td>
+                            <td class="px-6 py-4 font-black text-rose-600 italic uppercase">ETA: {{ d.predicted_eta }}M</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 bg-rose-500 text-white rounded text-[8px] font-black uppercase tracking-widest italic shadow-sm">{{ d.traffic_level }}</span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <a href="{% url 'track_delivery_live' d.order.id %}" class="bg-rose-900 text-white text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-xl hover:bg-black transition-all italic">Live Matrix</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+             </div>
+        </div>
+        {% endif %}
+
+        <!-- ACTIVE VECTORS TABLE -->
+        <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden mb-12">
+            <div class="p-10 border-b border-slate-50 flex justify-between items-center bg-white">
+                <div>
+                    <h3 class="text-xl font-black text-slate-800 tracking-tight italic uppercase">Operational Transition Matrix</h3>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 italic">Inter-sector logistics telemetry</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                    <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">Stream: High Fidelity</span>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-slate-50/50 text-[10px] font-black uppercase text-slate-400 italic">
+                            <th class="px-10 py-6 tracking-widest">Vector ID</th>
+                            <th class="px-10 py-6 tracking-widest">Consumer Node</th>
+                            <th class="px-10 py-6 tracking-widest">Agent Link</th>
+                            <th class="px-10 py-6 tracking-widest">State Sync</th>
+                            <th class="px-10 py-6 tracking-widest">Expansion</th>
+                            <th class="px-10 py-6 tracking-widest">Forecast</th>
+                            <th class="px-10 py-6 text-right tracking-widest">Ops Command</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        {% for d in active_deliveries %}
+                        <tr class="hover:bg-slate-50/80 transition-all group">
+                            <td class="px-10 py-8">
+                                <div class="text-xs font-black text-slate-800 italic uppercase">#V-{{ d.order.id|stringformat:"04d" }}</div>
+                            </td>
+                            <td class="px-10 py-8">
+                                <div class="text-xs font-black text-slate-700 italic uppercase tracking-tight">{{ d.order.full_name }}</div>
+                            </td>
+                            <td class="px-10 py-8">
+                                <div class="text-xs font-black text-slate-400 italic uppercase tracking-widest">{{ d.agent.name|default:"UNASSIGNED" }}</div>
+                            </td>
+                            <td class="px-10 py-8">
+                                <span class="px-3 py-1.5 rounded-xl text-[8px] font-black uppercase tracking-widest italic border
+                                    {% if d.status == 'NEARBY' %}bg-emerald-500 text-white border-emerald-600 shadow-sm
+                                    {% elif d.status == 'DISPATCHED' %}bg-orange-500 text-white border-orange-600 shadow-sm
+                                    {% elif d.status == 'PACKED' %}bg-blue-600 text-white border-blue-700 shadow-sm
+                                    {% else %}bg-slate-100 text-slate-400 border-slate-200{% endif %}">
+                                    {{ d.status|upper }}
+                                </span>
+                            </td>
+                            <td class="px-10 py-8 font-black text-slate-500 text-xs italic">{{ d.distance_km|floatformat:1 }} KM</td>
+                            <td class="px-10 py-8 font-black text-indigo-600 text-xs italic">{{ d.predicted_eta|default:"--" }} M</td>
+                            <td class="px-10 py-8 text-right">
+                                <a href="{% url 'track_delivery_live' d.order.id %}" class="inline-flex items-center gap-3 px-6 py-3 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl shadow-slate-100 hover:shadow-blue-100 italic">
+                                    Neural Track <i class="fas fa-satellite text-xs text-blue-400"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="px-10 py-32 text-center text-slate-300 italic uppercase tracking-widest font-black text-xs">
+                                No active vectors in grid
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AGENT MATRIX & VISUALIZATION -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-12">
+            
+            <!-- AGENT CLUSTER -->
+            <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-10 flex flex-col">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h3 class="text-xl font-black text-slate-800 tracking-tight italic uppercase">Fleet Node Register</h3>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 italic">Authenticated logistics units</p>
+                    </div>
+                    <i class="fas fa-users-viewfinder text-2xl text-slate-100"></i>
+                </div>
+                
+                <div class="space-y-4 max-h-[400px] overflow-y-auto scrollbar-hide pr-2">
+                    {% for agent in all_agents %}
+                    <div class="p-6 bg-slate-50 border border-slate-100 rounded-3xl hover:border-emerald-200 transition-all group">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-slate-300 group-hover:bg-emerald-500 group-hover:text-white transition-all italic font-black text-sm">
+                                    {{ agent.name|first|upper }}
+                                </div>
+                                <div>
+                                    <div class="text-xs font-black text-slate-800 uppercase italic">{{ agent.name }}</div>
+                                    <div class="text-[9px] font-black text-slate-400 uppercase italic tracking-widest mt-1">{{ agent.phone }} • {{ agent.vehicle_number|default:"PEDESTRIAN" }}</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full {% if agent.is_available %}bg-emerald-500 animate-pulse{% else %}bg-orange-500{% endif %}"></div>
+                                <span class="text-[9px] font-black {% if agent.is_available %}text-emerald-600{% else %}text-orange-600{% endif %} uppercase italic tracking-widest">
+                                    {% if agent.is_available %}ONLINE{% else %}BUSY{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-20 italic text-slate-300 font-black uppercase text-[10px] tracking-widest">No nodes registered in sector</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- SPATIAL MAP -->
+            <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-10 flex flex-col">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h3 class="text-xl font-black text-slate-800 tracking-tight italic uppercase">Geo-Spatial Matrix</h3>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 italic">Real-time vector visualization</p>
+                    </div>
+                </div>
+                <div id="adminMap"></div>
+            </div>
+
+        </div>
+
+        {% if delivery_partners %}
+        <!-- PARTNER REGISTER -->
+        <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden mb-12">
+            <div class="p-10 border-b border-slate-50">
+                <h3 class="text-xl font-black text-slate-800 tracking-tight italic uppercase">Fleet Partner Directory</h3>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 italic">Verified 3rd-party logistics nodes</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-slate-50/50 text-[10px] font-black uppercase text-slate-400 italic">
+                            <th class="px-10 py-6 tracking-widest">Identity</th>
+                            <th class="px-10 py-6 tracking-widest">Node Contact</th>
+                            <th class="px-10 py-6 tracking-widest">Asset Specs</th>
+                            <th class="px-10 py-6 tracking-widest">Target Sector</th>
+                            <th class="px-10 py-6 text-right tracking-widest">Unit Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        {% for p in delivery_partners %}
+                        <tr class="hover:bg-slate-50/80 transition-all">
+                            <td class="px-10 py-8 font-black text-slate-800 text-xs italic uppercase">{{ p.full_name }}</td>
+                            <td class="px-10 py-8 font-black text-slate-500 text-xs italic">{{ p.phone }}</td>
+                            <td class="px-10 py-8">
+                                <div class="text-xs font-black text-slate-400 italic uppercase">{{ p.vehicle_type }}</div>
+                                <div class="text-[9px] font-black text-slate-300 italic uppercase">#{{ p.vehicle_number }}</div>
+                            </td>
+                            <td class="px-10 py-8 font-black text-slate-500 text-xs italic uppercase">{{ p.working_city }}</td>
+                            <td class="px-10 py-8 text-right">
+                                {% if p.is_active and p.is_available %}
+                                    <span class="px-3 py-1.5 bg-emerald-500 text-white rounded-xl text-[8px] font-black uppercase tracking-widest italic shadow-sm">Fully Operational</span>
+                                {% elif p.is_active %}
+                                    <span class="px-3 py-1.5 bg-orange-500 text-white rounded-xl text-[8px] font-black uppercase tracking-widest italic shadow-sm">Sync Active (Busy)</span>
+                                {% else %}
+                                    <span class="px-3 py-1.5 bg-rose-600 text-white rounded-xl text-[8px] font-black uppercase tracking-widest italic shadow-sm">Node Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <footer class="mt-20 pt-10 border-t border-slate-100 pb-10 text-center">
+            <div class="flex items-center justify-center gap-6 mb-4">
+                <div class="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+                <span class="text-[9px] font-black text-slate-300 uppercase tracking-[0.4em] italic leading-none">Global Connectivity: Operational</span>
+                <div class="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+            </div>
+            <p class="text-[10px] font-black text-slate-200 uppercase tracking-widest italic leading-none">AiMART NEURAL INFRASTRUCTURE v4.0.2</p>
+        </footer>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // SPATIAL MATRIX SYNC
+        document.addEventListener('DOMContentLoaded', function() {
+            var map = L.map('adminMap').setView([20.5937, 78.9629], 5);
+            
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }).addTo(map);
+
+            // Add marker logic if available
+            {% for d in active_deliveries %}
+                {% if d.current_lat and d.current_long %}
+                L.marker([{{ d.current_lat }}, {{ d.current_long }}]).addTo(map)
+                    .bindPopup("<div class='text-xs font-black uppercase italic'>Trace: #{{ d.order.id }}<br>Status: {{ d.status }}</div>");
+                {% endif %}
+            {% endfor %}
+            
+            // Auto reset view if markers exist
+            var group = new L.featureGroup([]);
+            {% for d in active_deliveries %}
+                {% if d.current_lat and d.current_long %}
+                group.addLayer(L.marker([{{ d.current_lat }}, {{ d.current_long }}]));
+                {% endif %}
+            {% endfor %}
+            
+            if (group.getLayers().length > 0) {
+                map.addLayer(group);
+                map.fitBounds(group.getBounds().pad(0.5));
+            }
+        });
+    </script>
+</body>
+</html>

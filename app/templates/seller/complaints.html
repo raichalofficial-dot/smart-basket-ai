@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Customer Complaints | Seller Panel</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f8f8f8;
+            margin: 0;
+        }
+
+        .container {
+            padding: 40px;
+        }
+
+        .card {
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #1A2A5E;
+            margin-top: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        th {
+            background: #f4f6f9;
+            color: #1A2A5E;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        .priority-HIGH {
+            background-color: #e23744;
+        }
+
+        .priority-MEDIUM {
+            background-color: #ffa000;
+        }
+
+        .priority-LOW {
+            background-color: #2e7d32;
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'seller/navbar.html' %}
+
+    <div class="container">
+        <div class="card">
+            <h2>Customer Complaints (Related to Your Products)</h2>
+            <p>Complaints are prioritized by AI based on urgency. Please resolve HIGH priority issues first.</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Order</th>
+                        <th>Complaint Detail</th>
+                        <th>AI Priority</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for complaint in complaints %}
+                    <tr>
+                        <td>{{ complaint.created_at|date:"M d, Y" }}</td>
+                        <td>#{{ complaint.order.id }}</td>
+                        <td>{{ complaint.text }}</td>
+                        <td>
+                            <span class="badge priority-{{ complaint.priority }}">
+                                {{ complaint.priority }}
+                            </span>
+                        </td>
+                        <td><strong>{{ complaint.status }}</strong></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center;">No complaints related to your products.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>

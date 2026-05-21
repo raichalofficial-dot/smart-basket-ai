@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Family Cart Sharing</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .transition-hover:hover { transform: translateY(-5px); transition: all 0.3s ease; }
+        .rounded-xl { border-radius: 12px; }
+        .rounded-lg { border-radius: 10px; }
+        input:focus { box-shadow: none; border-color: #3b82f6; }
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body>
+    {% include 'customer/navbar.html' %}
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center mb-5">
+                    <h1 class="display-5 fw-bold" style="color: #1e293b;">Family Cart Sharing</h1>
+                    <p class="lead text-muted">Shop together with your family and friends in a single cart!</p>
+                </div>
+
+                {% if group %}
+                <!-- GROUP INFO CASE -->
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 24px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);">
+                    <div class="card-body p-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <span class="text-[11px] font-bold text-blue-600 uppercase tracking-widest block mb-1">Active Group</span>
+                                <h2 class="h3 fw-bold mb-0" style="color: #1e293b;">{{ group.group_name }}</h2>
+                            </div>
+                            <div class="text-end">
+                                <span class="text-muted small d-block">Group Code</span>
+                                <span class="h4 fw-bold text-blue-600 tracking-wider">{{ group.group_code }}</span>
+                            </div>
+                        </div>
+
+                        <div class="members-section mb-5">
+                            <h4 class="h6 fw-bold text-muted text-uppercase mb-3">Members</h4>
+                            <div class="d-flex flex-wrap gap-3">
+                                {% for member in group.members.all %}
+                                <div class="d-flex align-items-center gap-2 bg-white border px-3 py-2 rounded-xl">
+                                    <i class="fas fa-user-circle text-blue-500"></i>
+                                    <span class="fw-medium text-slate-700">{{ member.get_full_name|default:member.username }}</span>
+                                    {% if member == group.admin %}
+                                    <span class="badge bg-blue-50 text-blue-600 border border-blue-100 ms-1">Admin</span>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info border-0 shadow-sm rounded-xl py-4 px-4 bg-blue-50">
+                            <div class="d-flex gap-3">
+                                <i class="fas fa-info-circle text-blue-500 fs-4"></i>
+                                <div>
+                                    <h5 class="h6 fw-bold text-blue-900 mb-1">How it works</h5>
+                                    <p class="text-[13px] text-blue-800 mb-0 opacity-80">Every item added to your cart while in this group will be visible and shared. Anyone in the family can contribute to the final grocery list!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <!-- CREATE/JOIN CASE -->
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm p-4 text-center transition-hover" style="border-radius: 24px;">
+                            <div class="bg-blue-50 text-blue-600 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 64px; height: 64px;">
+                                <i class="fas fa-users fa-lg"></i>
+                            </div>
+                            <h3 class="h5 fw-bold text-slate-800 mb-3">Create Family Group</h3>
+                            <p class="text-sm text-slate-500 mb-4">Start a new sharing group and invite others with a code.</p>
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="create">
+                                <input type="text" name="group_name" class="form-control mb-3 rounded-lg py-2" placeholder="Group Name (e.g. Smith Family)" required>
+                                <button type="submit" class="btn btn-primary w-100 fw-bold rounded-lg py-2">Create Now</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm p-4 text-center transition-hover" style="border-radius: 24px;">
+                            <div class="bg-purple-50 text-purple-600 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 64px; height: 64px;">
+                                <i class="fas fa-sign-in-alt fa-lg"></i>
+                            </div>
+                            <h3 class="h5 fw-bold text-slate-800 mb-3">Join Existing Group</h3>
+                            <p class="text-sm text-slate-500 mb-4">Enter a 6-digit code shared by a family member.</p>
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="join">
+                                <input type="text" name="group_code" class="form-control mb-3 rounded-lg py-2 text-center fw-bold tracking-widest text-uppercase" placeholder="ABC123" required>
+                                <button type="submit" class="btn btn-dark w-100 fw-bold rounded-lg py-2">Join Group</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

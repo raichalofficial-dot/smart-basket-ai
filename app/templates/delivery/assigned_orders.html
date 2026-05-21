@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Assigned Orders</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f6f8;
+}
+
+.container{
+width:900px;
+margin:auto;
+margin-top:40px;
+}
+
+.order-card{
+background:white;
+padding:20px;
+margin-bottom:20px;
+border-radius:8px;
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+.deliver-btn{
+background:#2563eb;
+color:white;
+border:none;
+padding:8px 15px;
+border-radius:5px;
+cursor:pointer;
+}
+    input[name="otp"]{
+padding:8px;
+margin-right:10px;
+border:1px solid #ccc;
+border-radius:5px;
+}
+
+.deliver-btn{
+background:#16a34a;
+color:white;
+border:none;
+padding:8px 14px;
+border-radius:5px;
+cursor:pointer;
+}
+
+
+    .back-btn {
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.back-btn:hover {
+    transform: translateX(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+</style>
+
+</head>
+
+<body>
+<button onclick="history.back()" class="back-btn">
+    ⬅ Back
+</button>
+
+<div class="container">
+
+<h2>My Assigned Orders</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div style="background: #d4edda; color: #155724; padding: 10px; margin-bottom: 20px; border-radius: 5px;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+{% for order in orders %}
+
+<div class="order-card">
+
+<p><b>Order ID:</b> #{{ order.id }}</p>
+<p><b>Customer:</b> {{ order.user.username }}</p>
+<p><b>Amount:</b> ₹{{ order.total_amount }}</p>
+<p><b>Address:</b> {{ order.address }}</p>
+
+<!-- Delivery Status Update Actions -->
+{% if order.delivery %}
+    <div style="margin-top: 15px; margin-bottom: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+        <p style="margin-bottom: 10px;"><b>Current Status:</b> {{ order.delivery.status }}</p>
+        
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            {% if order.delivery.status == 'PACKED' %}
+                <a href="{% url 'driver_update_status' order.delivery.id 'DISPATCHED' %}" 
+                   style="background: #f97316; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 14px;">
+                   Mark as Out for Delivery
+                </a>
+            {% elif order.delivery.status == 'DISPATCHED' %}
+                <a href="{% url 'driver_update_status' order.delivery.id 'NEARBY' %}" 
+                   style="background: #3b82f6; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 14px;">
+                   Mark as Nearby
+                </a>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
+
+<form method="POST" action="{% url 'verify_delivery_otp' order.id %}" style="margin-top: 20px;">
+{% csrf_token %}
+
+<input type="text" name="otp" placeholder="Enter Delivery OTP" required>
+
+<button type="submit" class="deliver-btn">
+Verify & Complete Delivery
+</button>
+
+</form>
+
+</div>
+
+{% empty %}
+<p>No orders currently assigned to you.</p>
+{% endfor %}
+
+</div>
+
+</body>
+</html>

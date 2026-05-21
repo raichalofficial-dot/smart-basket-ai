@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Commission Details</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f5f5f5;
+padding:30px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:white;
+}
+
+th,td{
+padding:10px;
+border:1px solid #ddd;
+text-align:center;
+}
+
+th{
+background:#333;
+color:white;
+}
+
+.summary{
+margin-bottom:20px;
+padding:15px;
+background:white;
+border-radius:8px;
+}
+
+</style>
+</head>
+
+<body>
+
+<button onclick="window.history.back()">Back</button>
+
+<h2>Commission Report</h2>
+
+<div class="summary">
+<h3>Total Sales : ₹ {{ total_sales }}</h3>
+<h3>Total Commission Earned : ₹ {{ total_commission }}</h3>
+</div>
+
+<table>
+
+<tr>
+<th>Order ID</th>
+
+<th>Total Amount</th>
+<th>Commission</th>
+<th>Status</th>
+<th>Date</th>
+</tr>
+
+{% for order in orders %}
+
+<tr>
+<td>{{ order.id }}</td>
+<td>₹ {{ order.total_amount }}</td>
+<td>₹ {{ order.commission_amount }}</td>
+<td>{{ order.status }}</td>
+<td>{{ order.created_at }}</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+</body>
+</html>

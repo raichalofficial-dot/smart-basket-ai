@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Intelligence Dashboard | AiMart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --sidebar-bg: #1e293b;
+            --bg: #f8fafc;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            color: white;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+        }
+
+        .sidebar h2 {
+            font-size: 20px;
+            margin-bottom: 32px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .menu-item {
+            padding: 12px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+
+        .menu-item:hover,
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .menu-item.active {
+            border-left: 4px solid var(--secondary);
+        }
+
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            box-sizing: border-box;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        /* Metric Cards */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 13px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .chart-card h3 {
+            margin: 0 0 24px 0;
+            font-size: 18px;
+            color: #1e293b;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+        }
+
+        /* Badges */
+        .badge {
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <h2><i class="fas fa-robot"></i> Menu</h2>
+        <a href="{% url 'seller_index' %}" class="menu-item"><i class="fas fa-tachometer-alt"></i> Main Dashboard</a>
+        <a href="#" class="menu-item active" onclick="switchTab('overview-tab')"><i class="fas fa-brain"></i> AI
+            Intelligence</a>
+        <a href="#" class="menu-item" onclick="switchTab('stock-tab')"><i class="fas fa-bell"></i> Stock Alerts</a>
+        <a href="#" class="menu-item" onclick="switchTab('demand-tab')"><i class="fas fa-chart-line"></i> Demand
+            Forecast</a>
+        <a href="#" class="menu-item" onclick="switchTab('delivery-tab')"><i class="fas fa-truck"></i> Delivery
+            Metrics</a>
+        <a href="#" class="menu-item" onclick="switchTab('offers-tab')"><i class="fas fa-percentage"></i> Offers &
+            Discounts</a>
+        <a href="#" class="menu-item" onclick="switchTab('commission-tab')"><i class="fas fa-file-invoice-dollar"></i>
+            Commission Report</a>
+        <a href="{% url 'seller_complaints' %}" class="menu-item"><i class="fas fa-exclamation-circle"></i>
+            Customer Complaints</a>
+    </aside>
+
+    <main class="main-content">
+        <div class="header">
+            <h1>Intelligence Dashboard | {{ request.session.username }}</h1>
+            <button id="summarizeBtn" class="btn"
+                style="background: white; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 8px;">
+                Summarize <i class="fas fa-magic" style="margin-left: 8px; color: var(--secondary);"></i>
+            </button>
+        </div>
+
+        <!-- AI Intelligence TAB -->
+        <div id="overview-tab" class="dashboard-tab">
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Today's Orders</div>
+                    <div class="metric-value">{{ metrics.today_orders }}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Revenue (Month)</div>
+                    <div class="metric-value">₹{{ metrics.total_revenue|floatformat:2 }}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Low Stock Items</div>
+                    <div class="metric-value" style="color: var(--danger);">{{ metrics.low_stock_count }}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Avg Delivery Time</div>
+                    <div class="metric-value">{{ metrics.avg_delivery }} min</div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>Top Selling Products</h3>
+                    <div class="chart-container">
+                        <canvas id="topProductsChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>Delivery Status</h3>
+                    <div class="chart-container">
+                        <canvas id="deliveryStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery Metrics TAB -->
+        <div id="delivery-tab" class="dashboard-tab" style="display:none;">
+            <div class="chart-card">
+                <h3>Detailed Delivery Performance</h3>
+                <p style="color: #64748b;">Tracking delivery logs and fulfillment speed.</p>
+                <div style="margin-top: 20px;">
+                    <div class="metric-card" style="display:inline-block; margin-right: 20px; min-width: 200px;">
+                        <div class="metric-label">Avg Fulfillment</div>
+                        <div class="metric-value">{{ metrics.avg_delivery }}m</div>
+                    </div>
+                    <div class="metric-card" style="display:inline-block; min-width: 200px;">
+                        <div class="metric-label">Success Rate</div>
+                        <div class="metric-value">{{ metrics.success_rate }}%</div>
+                    </div>
+                </div>
+                <table style="width:100%; border-collapse: collapse; margin-top: 30px;">
+                    <tr style="border-bottom: 2px solid #f1f5f9; text-align: left; color: #64748b; font-size: 13px;">
+                        <th style="padding: 12px;">ORDER ID</th>
+                        <th>STATUS</th>
+                        <th>ETA / DURATION</th>
+                        <th>RATING</th>
+                    </tr>
+                    {% for d in deliveries %}
+                    <tr style="border-bottom: 1px solid #f1f5f9; font-size: 14px;">
+                        <td style="padding: 12px;">#{{ d.order.id }}</td>
+                        <td><span class="badge" style="background: #ebf5ff; color: #1e40af;">{{ d.status }}</span></td>
+                        <td>{{ d.predicted_eta }}</td>
+                        <td style="color: #f59e0b;">
+                             {% if d.order.review_set.all %}
+                                ★★★★★
+                             {% else %}
+                                Pending
+                             {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" style="text-align:center; padding:20px; color:#94a3b8;">No recent deliveries recorded.</td></tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+
+        <!-- Offers TAB -->
+        <div id="offers-tab" class="dashboard-tab" style="display:none;">
+            <div class="chart-card">
+                <h3>Smart Offers & Discounts</h3>
+                <p style="color: #64748b;">AI-recommended products for promotion to boost sales.</p>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px;">
+                    <div class="metric-card" style="border: 1px dashed var(--secondary);">
+                        <h4>Best Opportunity</h4>
+                        <p style="font-size: 14px;">"{{ metrics.top_product_name }}" is trending. Apply a 10%
+                            discount to skyrocket orders.</p>
+                        <button onclick="applyDiscount()"
+                            style="background: var(--secondary); color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;">Apply
+                            Now</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Commission TAB -->
+        <div id="commission-tab" class="dashboard-tab" style="display:none;">
+            <div class="chart-card">
+                <h3>Earnings & Commission Report</h3>
+                <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin-top: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Gross Revenue (Month)</span>
+                        <span style="font-weight: 700;">₹{{ metrics.total_revenue|floatformat:2 }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; color: #ef4444;">
+                        <span>Platform Commission (5%)</span>
+                        <span>-₹{{ metrics.commission_amount|floatformat:2 }}</span>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 15px 0;">
+                    <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 700;">
+                        <span>Net Payout</span>
+                        <span style="color: var(--success);">₹{{ metrics.net_payout|floatformat:2 }}</span>
+                    </div>
+                </div>
+                <!-- <button
+                    style="margin-top: 30px; background: var(--primary); color: white; border:none; padding: 12px 24px; border-radius: 8px; cursor:pointer; width: 100%;">Download
+                    Invoice (PDF)</button> -->
+            </div>
+        </div>
+
+        <!-- Stock Alerts TAB -->
+        <div id="stock-tab" class="dashboard-tab" style="display:none;">
+            <div class="chart-card">
+                <h3>Inventory & Stock Alerts</h3>
+                <p style="color: #64748b;">Immediate attention required for these items.</p>
+                <table style="width:100%; border-collapse: collapse; margin-top: 20px;">
+                    <tr style="border-bottom: 2px solid #f1f5f9; text-align: left; color: #64748b; font-size: 13px;">
+                        <th style="padding: 12px;">PRODUCT</th>
+                        <th>STOCK</th>
+                        <th>DAYS LEFT</th>
+                        <th>STATUS</th>
+                        <th>ACTION</th>
+                    </tr>
+                    {% for item in performance %}
+                    <tr
+                        style="border-bottom: 1px solid #f1f5f9; font-size: 14px; {% if item.restock_alert %}background:#fff5f5;{% endif %}">
+                        <td style="padding: 12px;">
+                            <strong>{{ item.product.name }}</strong><br>
+                            <small style="color:#64748b">{{ item.product.category.name }}</small>
+                        </td>
+                        <td>{{ item.current_stock }}</td>
+                        <td>{{ item.days_remaining }}</td>
+                        <td>
+                            {% if item.restock_alert %}
+                            <span class="badge" style="background:#fee2e2; color:#b91c1c;">LOW STOCK</span>
+                            {% else %}
+                            <span class="badge" style="background:#dcfce7; color:#15803d;">HEALTHY</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.restock_alert %}
+                            <button
+                                style="background:var(--danger); color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:12px;">Order
+                                More</button>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+
+        <!-- Demand Forecast TAB -->
+        <div id="demand-tab" class="dashboard-tab" style="display:none;">
+            <div class="chart-card">
+                <h3>AI-Powered Demand Forecasting</h3>
+                <p style="color: #64748b;">Predictions for the next 30 days based on historical sales trends.</p>
+                <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:20px; margin-top:20px;">
+                    {% for item in performance|slice:":4" %}
+                    <div style="border: 1px solid #e2e8f0; padding:15px; border-radius:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:start;">
+                            <strong>{{ item.product.name }}</strong>
+                            <span class="badge" style="background:var(--primary); color:white;">{{ item.status }}</span>
+                        </div>
+                        <div style="margin-top:10px; display:flex; justify-content:space-between;">
+                            <div>
+                                <small style="display:block; color:#64748b;">Daily Avg</small>
+                                <strong>{{ item.ads }} units</strong>
+                            </div>
+                            <div>
+                                <small style="display:block; color:#64748b;">Predicted (30d)</small>
+                                <strong style="color:var(--secondary);">{{ item.recommended_restock }} units</strong>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div
+                    style="margin-top:30px; padding:20px; background:#f0f9ff; border-radius:12px; border: 1px solid #bae6fd;">
+                    <h4 style="margin:0 0 10px 0; color:#0369a1;"><i class="fas fa-info-circle"></i> Forecasting Model
+                    </h4>
+                    <p style="margin:0; font-size:13px; color:#0c4a6e;">Our AI analyzes your last 30 days of sales,
+                        factoring in lead times and safety stock requirements to minimize stockouts.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="summarizeModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div
+            style="background:white; padding:32px; border-radius:16px; max-width:500px; width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h3 style="margin:0; color:var(--primary);"><i class="fas fa-magic"></i> AI Performance Summary</h3>
+                <button onclick="closeSummarize()"
+                    style="background:none; border:none; font-size:24px; cursor:pointer; color:#94a3b8;">&times;</button>
+            </div>
+            <div id="summaryText" style="line-height:1.6; color:#475569; font-size:15px;">
+                Analyzing your business data...
+            </div>
+            <div style="margin-top:24px; text-align:right;">
+                <button onclick="closeSummarize()"
+                    style="background:var(--primary); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">Got
+                    it</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Chat Button -->
+    <div style="position:fixed; bottom:30px; right:30px; z-index:999;">
+        <button onclick="toggleChat()"
+            style="background:var(--primary); color:white; border:none; width:60px; height:60px; border-radius:50%; box-shadow:0 5px 15px rgba(0,0,0,0.3); cursor:pointer; font-size:24px;">
+            <i class="fas fa-comment-dots"></i>
+        </button>
+        <div id="chatBox"
+            style="display:none; position:absolute; bottom:80px; right:0; width:350px; background:white; border-radius:16px; box-shadow:0 10px 25px rgba(0,0,0,0.2); overflow:hidden;">
+            <div
+                style="background:var(--primary); color:white; padding:15px; font-weight:600; display:flex; justify-content:space-between;">
+                <span>AiMart Intelligence Assistant</span>
+                <i class="fas fa-times" style="cursor:pointer;" onclick="toggleChat()"></i>
+            </div>
+            <div style="height:300px; padding:15px; overflow-y:auto; background:#f8fafc;" id="chatMessages">
+                <div
+                    style="background:#e2e8f0; padding:10px; border-radius:10px; margin-bottom:10px; font-size:14px; max-width:80%;">
+                    Hello! I'm your AI business assistant. How can I help you today?
+                </div>
+            </div>
+            <div style="padding:15px; border-top:1px solid #e2e8f0; display:flex; gap:10px;">
+                <input type="text" id="chatInput" placeholder="Ask about sales, stock..."
+                    style="flex:1; border:1px solid #e2e8f0; padding:8px; border-radius:8px; outline:none;">
+                <button id="sendChatBtn"
+                    style="background:var(--primary); color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;"><i
+                        class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const intelligenceData = JSON.parse('{{ metrics_json|escapejs }}');
+
+        function appendMessage(text, isUser = false) {
+            const container = document.getElementById('chatMessages');
+            if (!container) return;
+            const msg = document.createElement('div');
+            msg.style.cssText = isUser
+                ? "background:var(--secondary); color:white; padding:10px; border-radius:10px; margin-bottom:10px; font-size:14px; max-width:80%; margin-left:auto;"
+                : "background:#e2e8f0; padding:10px; border-radius:10px; margin-bottom:10px; font-size:14px; max-width:80%;";
+            msg.innerText = text;
+            container.appendChild(msg);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            appendMessage(message, true);
+            input.value = '';
+
+            try {
+                const response = await fetch('/seller/chat/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+                const chatData = await response.json();
+                if (chatData.status === 'success') {
+                    appendMessage(chatData.response);
+                } else {
+                    appendMessage("Sorry, I'm having trouble connecting to my brain right now.");
+                }
+            } catch (error) {
+                console.error("Chat Error:", error);
+                appendMessage("An error occurred. Please try again.");
+            }
+        }
+
+        function toggleChat() {
+            const cb = document.getElementById('chatBox');
+            if (cb) cb.style.display = cb.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.dashboard-tab').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            const target = document.getElementById(tabId);
+            if (target) target.style.display = 'block';
+
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            if (event && event.currentTarget) event.currentTarget.classList.add('active');
+        }
+
+        function showSummarize() {
+            const modal = document.getElementById('summarizeModal');
+            if (modal) modal.style.display = 'flex';
+            fetch('/seller/summarize/')
+                .then(res => res.json())
+                .then(summaryData => {
+                    const textHolder = document.getElementById('summaryText');
+                    if (textHolder) {
+                        textHolder.innerHTML = summaryData.status === 'success' ? summaryData.summary : "Error loading summary. Please try again.";
+                    }
+                });
+        }
+
+        function closeSummarize() {
+            const modal = document.getElementById('summarizeModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const sendBtn = document.getElementById('sendChatBtn');
+            const chatInput = document.getElementById('chatInput');
+            const summarizeBtn = document.getElementById('summarizeBtn');
+
+            if (sendBtn) sendBtn.onclick = sendMessage;
+            if (chatInput) chatInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+            if (summarizeBtn) summarizeBtn.onclick = showSummarize;
+
+            // Initialize Charts
+            const topChartCtx = document.getElementById('topProductsChart');
+            if (topChartCtx) {
+                new Chart(topChartCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: intelligenceData.top_products.labels,
+                        datasets: [{
+                            label: 'Units Sold',
+                            data: intelligenceData.top_products.values,
+                            backgroundColor: '#1e3a8af0',
+                            borderRadius: 8,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true, grid: { display: false } },
+                            x: { grid: { display: false } }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            const deliveryChartCtx = document.getElementById('deliveryStatusChart');
+            if (deliveryChartCtx) {
+                new Chart(deliveryChartCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Delivered', 'Delayed', 'In Transit'],
+                        datasets: [{
+                            data: [intelligenceData.delivery_status.delivered, intelligenceData.delivery_status.delayed, intelligenceData.delivery_status.other],
+                            backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+                            borderWidth: 0,
+                            cutout: '70%'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            }
+        });
+
+        const topProductId = {{ metrics.top_product_id|default:"null" }};
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function applyDiscount() {
+            if (!topProductId) {
+                Swal.fire('No product found', 'Unable to identify the top product for promotion.', 'error');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Apply 10% Discount?',
+                text: "This will launch a smart promotion for your top product.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3b82f6',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Yes, Apply Now!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch("{% url 'apply_seller_discount' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: new URLSearchParams({
+                            'product_id': topProductId
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                Swal.fire(
+                                    'Promotion Applied!',
+                                    'Your smart discount is now live across AiMart.',
+                                    'success'
+                                );
+                            } else {
+                                Swal.fire('Error', data.message || 'Unable to apply discount.', 'error');
+                            }
+                        })
+                        .catch(() => {
+                            Swal.fire('Error', 'Unable to connect to server.', 'error');
+                        });
+                }
+            })
+        }
+    </script>
+</body>
+
+</html>

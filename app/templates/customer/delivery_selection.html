@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Select Delivery Slot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f4f7f9;
+            margin: 0;
+        }
+
+        .slot-card:has(input:checked) {
+            border-color: #2874f0 !important;
+            background: #f0f7ff;
+        }
+
+        .badge-high {
+            background-color: #ef4444 !important;
+        }
+
+        .badge-medium {
+            background-color: #f59e0b !important;
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'customer/navbar.html' %}
+    <div class="container" style="max-width: 800px; margin: 40px auto; padding: 20px;">
+        <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            <h2 style="color: #2874f0; margin-bottom: 25px;"><i class="fas fa-truck" style="margin-right: 12px;"></i>
+                Delivery Slot & ETA</h2>
+
+            <form method="POST" id="deliveryForm">
+                {% csrf_token %}
+
+                <div style="margin-bottom: 30px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 10px;">Select Available Delivery
+                        Slot:</label>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                        {% for slot in slots %}
+                        <label
+                            style="border: 2px solid #e2e8f0; border-radius: 10px; padding: 15px; cursor: pointer; transition: 0.2s;"
+                            class="slot-card">
+                            <input type="radio" name="slot_id" value="{{ slot.id }}" style="display:none;" required
+                                onchange="updateSelection(this)">
+                            <div style="font-weight:700; color:#333;">{{ slot.time_display }}</div>
+                            <div style="font-size:13px; color:#666;">{{ slot.date_display }}</div>
+                            <div style="font-size:11px; color:#999; margin-top:5px;">{{ slot.display_text }}</div>
+                        </label>
+                        {% empty %}
+                        <p style="color: #666; font-style: italic;">No slots available for today.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div
+                    style="background: #f0f7ff; padding: 20px; border-radius: 10px; border-left: 5px solid #2874f0; margin-bottom: 30px;">
+                    <h4 style="margin: 0; color: #2874f0; display: flex; align-items: center;">
+                        <i class="fas fa-microchip" style="margin-right: 10px;"></i> AI-Powered ETA
+                    </h4>
+                    <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 14px; color: #555;">SmartBasket AI Prediction:</div>
+                            <div style="font-size: 24px; font-weight: 800; color: #333;" id="etaDisplay">
+                                Predicting...
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span id="trafficBadge" class="badge"
+                                style="background: #10b981; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px;">LOW
+                                TRAFFIC</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px;">
+                    <button type="submit"
+                        style="flex: 1; background: #fb641b; color: white; border: none; padding: 15px; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer;">
+                        Confirm & Proceed to Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function updateSelection(input) {
+            document.querySelectorAll('.slot-card').forEach(card => card.style.borderColor = '#e2e8f0');
+            input.parentElement.style.borderColor = '#2874f0';
+        }
+
+        async function fetchAI_ETA() {
+            const trafficLevels = ['LOW', 'MEDIUM', 'HIGH'];
+            const randomTraffic = trafficLevels[Math.floor(Math.random() * trafficLevels.length)];
+            const response = await fetch('/api/predict-eta/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    distance: 4.5,
+                    traffic: randomTraffic
+                })
+            });
+            const data = await response.json();
+            document.getElementById('etaDisplay').innerText = data.eta + " Minutes";
+
+            const trafficBadge = document.getElementById('trafficBadge');
+            trafficBadge.className = 'badge';
+            trafficBadge.innerText = data.traffic_level + " TRAFFIC";
+            if (data.traffic_level === 'HIGH') trafficBadge.classList.add('badge-high');
+            if (data.traffic_level === 'MEDIUM') trafficBadge.classList.add('badge-medium');
+        }
+
+        window.onload = fetchAI_ETA;
+    </script>
+</body>
+
+</html>

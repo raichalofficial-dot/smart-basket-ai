@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Submit Complaint | FashionHub</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            padding: 40px;
+        }
+
+        .card {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #2874f0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            height: 150px;
+            resize: vertical;
+        }
+
+        button {
+            background: #2874f0;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #1a5abf;
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'customer/navbar.html' %}
+    <div class="card">
+        <h2>Submit a Complaint</h2>
+        <p>Your complaint will be automatically prioritized by our AI system for faster resolution.</p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="order">Related Order (Optional)</label>
+                <select name="order" id="order">
+                    <option value="">-- No Order Linked --</option>
+                    {% for order in orders %}
+                    <option value="{{ order.id }}">Order #{{ order.id }} - ₹{{ order.total_amount }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="text">What's the issue? (AI will detect priority)</label>
+                <textarea name="text" id="text"
+                    placeholder="e.g. My order was not delivered / product is damaged / slow delivery..."
+                    required></textarea>
+                <small style="color: #666;">Tip: Mention specific issues like 'fraud', 'damaged', 'not delivered' for
+                    high-priority routing.</small>
+            </div>
+
+            <button type="submit">Submit Complaint</button>
+            <a href="{% url 'customer_complaints' %}"
+                style="display: inline-block; margin-left: 15px; color: #666;">Cancel</a>
+        </form>
+    </div>
+</body>
+
+</html>

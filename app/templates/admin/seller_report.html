@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ report.seller_name }} - AI Performance Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #1A2A5E;
+            --accent: #fb6a19;
+            --bg: #f8fafc;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", system-ui, sans-serif;
+            background: var(--bg);
+            color: #334155;
+        }
+
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 25px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 5px solid var(--accent);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-top: 5px;
+        }
+
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .ai-badge {
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 8px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: auto;
+        }
+
+        .score-val {
+            font-size: 32px;
+            font-weight: 900;
+            color: #6366f1;
+        }
+
+        .prediction-box {
+            background: #f0fdf4;
+            border: 1px dashed #2ecc71;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .insight-list,
+        .rec-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .insight-item {
+            padding: 12px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #6366f1;
+            font-size: 14px;
+        }
+
+        .rec-item {
+            padding: 12px;
+            background: #fff7ed;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--accent);
+            font-size: 14px;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    {% if report.error %}
+    <div style="padding: 100px; text-align: center;">
+        <h2>Oops! {{ report.error }}</h2>
+        <a href="{% url 'admin_seller_analysis' %}">Go Back</a>
+    </div>
+    {% else %}
+    <header>
+        <div>
+            <h2 style="margin:0;">Performance Analysis: {{ report.seller_name }}</h2>
+            <p style="margin:5px 0 0 0; opacity: 0.8; font-size: 14px;">Data-driven intelligence report generated on
+                <span id="js-report-date" data-val="{{report.ai_date}}">Loading...</span>
+            </p>
+        </div>
+        <a href="{% url 'admin_seller_analysis' %}" class="back-btn">← Choose Another Seller</a>
+    </header>
+
+    <div class="container">
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-label">Total Revenue</div>
+                <div class="stat-value">₹{{ report.total_revenue|floatformat:2 }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Order Volume</div>
+                <div class="stat-value">{{ report.total_orders }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Growth Rate</div>
+                <div class="stat-value" style="color: {% if report.growth >= 0 %}#2ecc71{% else %}#e74c3c{% endif %};">
+                    {{ report.growth }}%
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Cust. Rating</div>
+                <div class="stat-value">{{ report.avg_rating }} / 5.0</div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3>Monthly Revenue Trend</h3>
+                <canvas id="revenueChart" height="150"></canvas>
+
+                <div style="margin-top: 40px;">
+                    <h3>Product Sales Distribution</h3>
+                    <canvas id="productsChart" height="150"></canvas>
+                </div>
+            </div>
+
+            <div>
+                <div class="card" style="text-align: center;">
+                    <div class="ai-header" style="justify-content: center;">
+                        <span class="ai-badge">AI Intelligence</span>
+                    </div>
+                    <div class="score-circle">
+                        <div class="score-val">{{ report.performance_score }}</div>
+                        <div style="font-size: 10px; color: #94a3b8;">SCORE</div>
+                    </div>
+
+                    <div class="prediction-box">
+                        <div class="stat-label" style="color: #166534;">Predicted Revenue (Next Month)</div>
+                        <div class="stat-value" style="color: #166534; font-size: 28px;"><span id="js-prediction"
+                                data-val="{{report.ai_prediction}}">Loading...</span></div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 25px;">
+                    <div class="ai-header">
+                        <span class="ai-badge">Insights</span>
+                    </div>
+                    <ul class="insight-list">
+                        {% for insight in report.insights %}
+                        <li class="insight-item">{{ insight }}</li>
+                        {% endfor %}
+                    </ul>
+
+                    <div class="ai-header" style="margin-top: 30px;">
+                        <span class="ai-badge" style="background: #fb6a19;">Recommendations</span>
+                    </div>
+                    <ul class="rec-list">
+                        {% for rec in report.recommendations %}
+                        <li class="rec-item">{{ rec }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Inject AI data to bypass template tag splitting issues
+        document.getElementById('js-report-date').textContent = document.getElementById('js-report-date').dataset.val;
+        document.getElementById('js-prediction').textContent = document.getElementById('js-prediction').dataset.val;
+
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ report.monthly_labels | safe }},
+            datasets: [{
+                label: 'Revenue (₹)',
+                data: {{ report.monthly_data | safe }},
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            fill: true,
+            tension: 0.4,
+            borderWidth: 4,
+            pointRadius: 6,
+            pointBackgroundColor: '#fff',
+            pointBorderWidth: 2,
+            yAxisID: 'y'
+            }, {
+                label: 'Orders',
+                data: [{% for o in report.monthly_orders %}{{ o }}, {% endfor %}],
+            borderColor: '#fb6a19',
+            backgroundColor: 'transparent',
+            borderDash: [5, 5],
+            tension: 0.4,
+            borderWidth: 2,
+            pointRadius: 4,
+            yAxisID: 'y1'
+            }]
+        },
+            options: {
+            responsive: true,
+            plugins: { legend: { display: true, position: 'bottom' } },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    beginAtZero: true,
+                    grid: { display: false },
+                    title: { display: true, text: 'Revenue' }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    beginAtZero: true,
+                    grid: { display: false },
+                    title: { display: true, text: 'Orders' }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+        });
+
+        const ctx2 = document.getElementById('productsChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: [{% for p in report.top_products %}"{{ p.name }}",{% endfor %}],
+            datasets: [{
+                label: 'Units Sold',
+                data: [{% for p in report.top_products %}{{ p.sold }}, {% endfor %}],
+            backgroundColor: 'rgba(251, 106, 25, 0.7)',
+            borderColor: '#fb6a19',
+            borderWidth: 1,
+            borderRadius: 5
+            }]
+        },
+            options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { display: false } },
+                x: { grid: { display: false } }
+            }
+        }
+        });
+    </script>
+    {% endif %}
+</body>
+
+</html>

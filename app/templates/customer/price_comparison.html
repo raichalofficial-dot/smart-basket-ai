@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Smart Price Comparison - {{ product.name }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f9;
+            color: #333;
+        }
+
+        .page-wrap {
+            max-width: 960px;
+            margin: 30px auto;
+            padding: 0 16px 60px;
+        }
+
+        /* ── Product Card ── */
+        .product-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px 28px;
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .product-card img {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            border-radius: 10px;
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            flex-shrink: 0;
+        }
+
+        .product-card .brand {
+            font-size: 12px;
+            font-weight: 700;
+            color: #ff6b00;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .product-card h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 6px;
+        }
+
+        .product-card p {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .product-card .price-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .product-card .product-price {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111;
+        }
+
+        .product-card .category-tag {
+            background: #e8f5e9;
+            color: #388e3c;
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        /* ── Comparison Table ── */
+        .comparison-box {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .comparison-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .comparison-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .comparison-header .vendor-count {
+            font-size: 13px;
+            color: #888;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead tr {
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        thead th {
+            text-align: left;
+            padding: 10px 12px;
+            font-size: 13px;
+            color: #888;
+            font-weight: 600;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #f9f9f9;
+            transition: background 0.15s;
+        }
+
+        tbody tr:hover {
+            background: #fafafa;
+        }
+
+        tbody td {
+            padding: 16px 12px;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .vendor-name {
+            font-weight: 700;
+            font-size: 15px;
+            color: #1a1a1a;
+        }
+
+        .best-deal-badge {
+            display: inline-block;
+            background: #fff3e0;
+            color: #e65100;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            padding: 2px 7px;
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+
+        .original-price {
+            text-decoration: line-through;
+            color: #aaa;
+            font-size: 13px;
+        }
+
+        .discount-text {
+            color: #2e7d32;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .final-price {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111;
+        }
+
+        .btn-add {
+            background: #ff6b00;
+            color: white;
+            border: none;
+            padding: 9px 18px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-add:hover {
+            background: #e55d00;
+        }
+
+        /* ── AI Suggestions ── */
+        .suggestions-box {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px 28px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .suggestions-box h3 {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .suggestions-box .sub {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 18px;
+        }
+
+        .alt-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .alt-card {
+            border: 1px solid #e8e8e8;
+            border-radius: 10px;
+            padding: 16px;
+            background: #fafafa;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+
+        .alt-card:hover {
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .alt-brand {
+            font-size: 11px;
+            font-weight: 700;
+            color: #ff6b00;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .alt-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+
+        .alt-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .alt-price {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111;
+        }
+
+        .alt-compare {
+            font-size: 13px;
+            color: #3a5bd9;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .alt-compare:hover {
+            text-decoration: underline;
+        }
+
+        .no-vendors {
+            text-align: center;
+            padding: 40px 0;
+            color: #888;
+            font-size: 14px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: #555;
+            text-decoration: none;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .back-link:hover {
+            color: #1a1a1a;
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'customer/navbar.html' %}
+
+    <div class="page-wrap">
+
+        <a href="{% url 'product_detail' product.id %}" class="back-link">← Back to Product</a>
+
+        <!-- Product Info -->
+        <div class="product-card">
+            {% with img=product.images.first %}
+            {% if img %}
+            <img src="{{ img.image.url }}" alt="{{ product.name }}">
+            {% else %}
+            <img src="https://via.placeholder.com/120x120?text=No+Image" alt="No Image">
+            {% endif %}
+            {% endwith %}
+
+            <div>
+                {% if product.brand %}
+                <div class="brand">{{ product.brand.brandName }}</div>
+                {% endif %}
+                <h2>{{ product.name }}</h2>
+                <p>{{ product.short_description }}</p>
+                <div class="price-row">
+                    <span class="product-price">₹{{ product.price|floatformat:2 }}</span>
+                    {% if product.category %}
+                    <span class="category-tag">{{ product.category.name }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Comparison Table -->
+        <div class="comparison-box">
+            <div class="comparison-header">
+                <h3>🏷️ Smart Price Comparison</h3>
+                <span class="vendor-count">Prices from {{ vendor_count }} vendor{{ vendor_count|pluralize }}</span>
+            </div>
+
+            {% if vendor_prices %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Vendor</th>
+                        <th>Original Price</th>
+                        <th>Discount</th>
+                        <th>Final Price</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in vendor_prices %}
+                    <tr>
+                        <td>
+                            <div class="vendor-name">{{ v.vendor_name }}</div>
+                            {% if forloop.first %}
+                            <div class="best-deal-badge">BEST DEAL</div>
+                            {% endif %}
+                        </td>
+                        <td><span class="original-price">₹{{ v.price|floatformat:2 }}</span></td>
+                        <td>
+                            {% if v.discount > 0 %}
+                            <span class="discount-text">{{ v.discount|floatformat:1 }}% Off</span>
+                            {% else %}
+                            <span style="color:#aaa;">—</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="final-price">₹{{ v.final_price|floatformat:4 }}</span></td>
+                        <td>
+                            <form method="POST" action="{% url 'add_to_cart' product.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="price" value="{{ v.final_price }}">
+                                <button type="submit" class="btn-add">Add to Cart</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="no-vendors">
+                <p>No vendor data available for this product yet.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- AI Smart Suggestions -->
+        <div class="suggestions-box">
+            <h3>🤖 AI Smart Suggestions</h3>
+            {% if alternatives %}
+            <p class="sub">Found these cost-effective alternatives in the same category:</p>
+            <div class="alt-grid">
+                {% for alt in alternatives %}
+                <div class="alt-card">
+                    <div class="alt-brand">{{ alt.brand }}</div>
+                    <div class="alt-name">{{ alt.name }}</div>
+                    <div class="alt-footer">
+                        <span class="alt-price">₹{{ alt.price|floatformat:1 }}</span>
+                        <a href="{% url 'product_price_details' alt.id %}" class="alt-compare">Compare →</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="sub">No cheaper alternatives found in this category. This is already a great deal!</p>
+            {% endif %}
+        </div>
+
+    </div>
+</body>
+
+</html>

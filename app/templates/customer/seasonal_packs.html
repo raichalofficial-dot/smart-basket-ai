@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Seasonal Packs</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .transition-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important;
+            transition: all 0.3s ease;
+        }
+        .rounded-xl { border-radius: 12px; }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); }
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body>
+    {% include 'customer/navbar.html' %}
+
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold" style="color: #1e293b;">Seasonal & Festival Packs</h1>
+            <p class="lead text-muted">Special curated AI-bundles for your celebrations</p>
+        </div>
+
+        <div class="row g-4">
+            {% for pack in packs %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm transition-hover" style="border-radius: 20px; overflow: hidden;">
+                    {% if pack.image %}
+                    <img src="{{ pack.image.url }}" class="card-img-top" alt="{{ pack.name }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                    <div class="bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class="fas fa-gift fa-3x text-white"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">
+                                {{ pack.festival_name|default:"Limited Time" }}
+                            </span>
+                            <span class="text-success fw-bold">{{ pack.discount_percentage }}% OFF</span>
+                        </div>
+                        <h3 class="card-title h5 mb-3" style="font-weight: 700; color: #1e293b;">{{ pack.name }}</h3>
+                        <p class="card-text text-muted small mb-4">{{ pack.description }}</p>
+                        
+                        <div class="products-list mb-4">
+                            <div class="text-[11px] fw-bold text-slate-400 text-uppercase tracking-widest mb-2">Includes:</div>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for product in pack.products.all|slice:":4" %}
+                                <span class="badge border text-slate-600 rounded-pill px-2 py-1" style="font-size: 10px; font-weight: normal;">{{ product.name }}</span>
+                                {% endfor %}
+                                {% if pack.products.count > 4 %}
+                                <span class="text-xs text-slate-400 align-self-center mt-1">+{{ pack.products.count|add:"-4" }} more</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <a href="{% url 'add_pack_to_cart' pack.id %}" class="btn btn-primary w-100 py-3 rounded-xl fw-bold shadow-lg mt-auto">
+                            <i class="fas fa-shopping-basket me-2"></i> Add Bundle to Cart
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <div class="bg-light p-5 rounded-3">
+                    <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No seasonal packs available right now.</h4>
+                    <p>Check back during the next festival!</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

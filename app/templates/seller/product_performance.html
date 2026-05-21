@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Performance & Smart Restock | AiMart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1A2A5E;
+            --danger: #e23744;
+            --success: #2e7d32;
+            --warning: #ffa000;
+            --bg: #f4f7fe;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            margin: 0;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: var(--primary);
+            margin: 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .table-card {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th {
+            text-align: left;
+            padding: 15px;
+            background: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 14px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-fast { background: #fee2e2; color: #ef4444; }
+        .status-moderate { background: #fef3c7; color: #d97706; }
+        .status-slow { background: #f1f5f9; color: #64748b; }
+
+        .alert-yes { color: var(--danger); font-weight: 700; display: flex; align-items: center; }
+        .alert-no { color: var(--success); }
+
+        .urgent-badge {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: var(--danger);
+            border-radius: 50%;
+            margin-right: 5px;
+            box-shadow: 0 0 8px var(--danger);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .qty-input {
+            width: 60px;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+{% include 'seller/navbar.html' %}
+
+<div class="container">
+    <div class="header">
+        <h1>Seller Product Performance & Smart Restock Assistant</h1>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="stats-grid">
+        <div class="card">
+            <h3>Product Performance Distribution</h3>
+            <div class="chart-container">
+                <canvas id="performancePieChart"></canvas>
+            </div>
+        </div>
+        <div class="card">
+            <h3>Sales Trend (Last 30 Days)</h3>
+            <div class="chart-container">
+                <canvas id="salesLineChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="card table-card">
+        <h3>Product Inventory & Restock Insights</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Category</th>
+                    <th>Stock</th>
+                    <th>Avg Daily Sales</th>
+                    <th>Days Remaining</th>
+                    <th>Status</th>
+                    <th>Restock Alert</th>
+                    <th>Suggested Qty</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in performance_results %}
+                <tr>
+                    <td><strong>{{ item.product.name }}</strong></td>
+                    <td>{{ item.product.category.CategoryName }}</td>
+                    <td>{{ item.current_stock }}</td>
+                    <td>{{ item.ads }}</td>
+                    <td>{{ item.days_remaining }}</td>
+                    <td>
+                        <span class="badge 
+                            {% if 'Fast' in item.status %}status-fast
+                            {% elif 'Slow' in item.status %}status-slow
+                            {% else %}status-moderate{% endif %}">
+                            {{ item.status }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if item.restock_alert %}
+                            <span class="alert-yes"><span class="urgent-badge"></span> URGENT</span>
+                        {% else %}
+                            <span class="alert-no">Healthy</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.recommended_restock > 0 %}
+                            <strong style="color: var(--danger);">{{ item.recommended_restock }}</strong>
+                        {% else %}
+                            0
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center;">No product data available for analysis.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Data from Django
+    const performanceData = {{ chart_data|safe }};
+    
+    // Performance Pie Chart
+    const ctxPie = document.getElementById('performancePieChart').getContext('2d');
+    new Chart(ctxPie, {
+        type: 'doughnut',
+        data: {
+            labels: ['Fast Moving', 'Moderate', 'Slow Moving'],
+            datasets: [{
+                data: [performanceData.fast, performanceData.moderate, performanceData.slow],
+                backgroundColor: ['#ef4444', '#f59e0b', '#94a3b8'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // Sales Trend Line Chart (Aggregated)
+    const ctxLine = document.getElementById('salesLineChart').getContext('2d');
+    new Chart(ctxLine, {
+        type: 'line',
+        data: {
+            labels: performanceData.labels,
+            datasets: [{
+                label: 'Total Sales (Units)',
+                data: performanceData.sales,
+                borderColor: '#e23744',
+                backgroundColor: 'rgba(226, 55, 68, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, grid: { display: false } },
+                x: { grid: { display: false } }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
